@@ -2,9 +2,9 @@
   # Define o diretório base onde o pnpm install e o build command serão executados
   base = "client"
   # Define o comando de build
-  command = "pnpm run build"
+  command = "pnpm install && pnpm run build"
   # Define o diretório de publicação (relativo ao Base directory)
-  publish = "dist"
+  publish = "client/dist"
 
 # Configuração para o roteamento SPA (Single Page Application)
 [[redirects]]
