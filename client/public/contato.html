@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contato - Detector de Smishing">
+    <title>Contato - Detector de Smishing</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Estilos customizados -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23003366'>🛡️</text></svg>">
+</head>
+<body>
+    <!-- Navegação -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom shadow-sm sticky-top">
+        <div class="container-lg">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="fas fa-shield-alt text-primary me-2"></i>
+                Detector de Smishing
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="detector.html">Detector</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="sobre.html">Sobre Nós</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="contato.html">Contato</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section py-5" style="background: linear-gradient(135deg, #003366 0%, #004d99 100%);">
+        <div class="container-lg">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold text-white mb-3">
+                        Entre em Contato
+                    </h1>
+                    <p class="lead text-white-50 mb-0">
+                        Tem dúvidas, sugestões ou quer reportar um problema? Estamos aqui para ajudar!
+                    </p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="display-1 text-warning opacity-75">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conteúdo Principal -->
+    <section class="py-5">
+        <div class="container-lg">
+            <div class="row g-4">
+                <!-- Informações de Contato -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-4">
+                                <i class="fas fa-info-circle me-2 text-primary"></i>
+                                Informações
+                            </h5>
+                            
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-2">
+                                    <i class="fas fa-university me-2 text-primary"></i>
+                                    Instituição
+                                </h6>
+                                <p class="text-muted small mb-0">
+                                    Universidade Virtual do Estado de São Paulo (UNIVESP)
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-2">
+                                    <i class="fas fa-book me-2 text-primary"></i>
+                                    Projeto
+                                </h6>
+                                <p class="text-muted small mb-0">
+                                    Trabalho de Conclusão de Curso (TCC)<br>
+                                    Ciência de Dados
+                                </p>
+                            </div>
+
+                            <div class="mb-4">
+                                <h6 class="fw-bold mb-2">
+                                    <i class="fas fa-globe me-2 text-primary"></i>
+                                    Website da Instituição
+                                </h6>
+                                <p class="text">
+                                    <a href="https://www.univesp.br/" target="_blank" class="text-decoration-none">www.univesp.br</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulário de Contato -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <h3 class="card-title fw-bold mb-4">
+                                <i class="fas fa-paper-plane me-2 text-primary"></i>
+                                Envie uma Mensagem
+                            </h3>
+
+                            <form id="formularioContato" method="POST" action="https://formspree.io/f/YOUR_FORM_ID">
+                                <!-- Nome -->
+                                <div class="mb-4">
+                                    <label for="nome" class="form-label fw-bold">
+                                        Nome Completo *
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="nome" 
+                                        name="nome"
+                                        placeholder="Seu nome completo"
+                                        required
+                                    >
+                                </div>
+
+                                <!-- Email -->
+                                <div class="mb-4">
+                                    <label for="email" class="form-label fw-bold">
+                                        Email *
+                                    </label>
+                                    <input 
+                                        type="email" 
+                                        class="form-control" 
+                                        id="email" 
+                                        name="email"
+                                        placeholder="seu.email@exemplo.com"
+                                        required
+                                    >
+                                    <small class="text-muted d-block mt-2">
+                                        Usaremos seu email apenas para responder sua mensagem
+                                    </small>
+                                </div>
+
+                                <!-- Telefone (Opcional) -->
+                                <div class="mb-4">
+                                    <label for="telefone" class="form-label fw-bold">
+                                        Telefone (Opcional)
+                                    </label>
+                                    <input 
+                                        type="tel" 
+                                        class="form-control" 
+                                        id="telefone" 
+                                        name="telefone"
+                                        placeholder="(11) 91234-5678 ou (11) 1234-5678"
+                                    >
+                                </div>
+
+                                <!-- Assunto -->
+                                <div class="mb-4">
+                                    <label for="assunto" class="form-label fw-bold">
+                                        Assunto *
+                                    </label>
+                                    <select class="form-select" id="assunto" name="assunto" required>
+                                        <option value="">Selecione um assunto</option>
+                                        <option value="duvida">Dúvida sobre o projeto</option>
+                                        <option value="sugestao">Sugestão de melhoria</option>
+                                        <option value="bug">Reportar um erro</option>
+                                        <option value="feedback">Feedback geral</option>
+                                        <option value="outro">Outro</option>
+                                    </select>
+                                </div>
+
+                                <!-- Mensagem -->
+                                <div class="mb-4">
+                                    <label for="mensagem" class="form-label fw-bold">
+                                        Mensagem *
+                                    </label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="mensagem" 
+                                        name="mensagem"
+                                        rows="6" 
+                                        placeholder="Escreva sua mensagem aqui..."
+                                        required
+                                    ></textarea>
+                                    <small class="text-muted d-block mt-2">
+                                        <span id="contadorMensagem">0</span>/1000 caracteres
+                                    </small>
+                                </div>
+
+                                <!-- Checkbox de Consentimento -->
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input 
+                                            class="form-check-input" 
+                                            type="checkbox" 
+                                            id="consentimento" 
+                                            name="consentimento"
+                                            required
+                                        >
+                                        <label class="form-check-label" for="consentimento">
+                                            Concordo em receber uma resposta por email e que meus dados sejam usados apenas para responder minha mensagem *
+                                        </label>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        Seus dados estão seguros e nunca serão compartilhados com terceiros
+                                    </small>
+                                </div>
+
+                                <!-- Botão de Envio -->
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-lg btn-warning w-100"
+                                    id="botaoEnviar"
+                                >
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    Enviar Mensagem
+                                </button>
+                            </form>
+
+                            <!-- Indicador de Carregamento -->
+                            <div id="carregandoFormulario" class="text-center mt-4" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Enviando...</span>
+                                </div>
+                                <p class="text-muted mt-3">Enviando sua mensagem...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aviso de Privacidade -->
+                    <div class="alert alert-info mt-4" role="alert">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <strong>Privacidade e Segurança:</strong>
+                        Todos os dados enviados através deste formulário são protegidos e criptografados. 
+                        Usamos Formspree para processar suas mensagens com segurança.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção de Redes Sociais -->
+    <section class="py-5 bg-light">
+        <div class="container-lg">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="h2 fw-bold mb-4">Outras Formas de Contato</h2>
+                    <p class="lead text-muted mb-5">
+                        Você também pode nos encontrar em:
+                    </p>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <a href="#" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fab fa-github me-2"></i>
+                                GitHub
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <a href="mailto:tcccienciadedadosunivesp2025@gmail.com" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-envelope me-2"></i>
+                                Email
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container-lg">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Sobre o Projeto</h6>
+                    <p class="text small">
+                        Detector de Smishing desenvolvido como TCC da UNIVESP
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Navegação</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="index.html" class="text-white text-decoration-none">Dashboard</a></li>
+                        <li><a href="detector.html" class="text-white text-decoration-none">Detector</a></li>
+                        <li><a href="sobre.html" class="text-white text-decoration-none">Sobre Nós</a></li>
+                        <li><a href="contato.html" class="text-white text-decoration-none">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Informações</h6>
+                    <p class="text small mb-2">
+                        <i class="fas fa-university me-2"></i>
+                        UNIVESP
+                    </p>
+                    <p class="text small">
+                        <i class="fas fa-code me-2"></i>
+                        Desenvolvido com ❤️
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-secondary">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text small mb-0">
+                        © 2025 Detector de Smishing. Todos os direitos reservados.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text small mb-0">
+                        Desenvolvido como material educacional
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/contato.js"></script>
+</body>
+</html>
