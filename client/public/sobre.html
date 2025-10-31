@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sobre o Detector de Smishing - Conheça o projeto e a equipe">
+    <title>Sobre Nós - Detector de Smishing</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Estilos customizados -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23003366'>🛡️</text></svg>">
+</head>
+<body>
+    <!-- Navegação -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom shadow-sm sticky-top">
+        <div class="container-lg">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="fas fa-shield-alt text-primary me-2"></i>
+                Detector de Smishing
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="detector.html">Detector</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="sobre.html">Sobre Nós</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contato.html">Contato</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section py-5" style="background: linear-gradient(135deg, #003366 0%, #004d99 100%);">
+        <div class="container-lg">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold text-white mb-3">
+                        Sobre o Projeto
+                    </h1>
+                    <p class="lead text-white-50 mb-0">
+                        Conheça a história, motivação e a equipe por trás do Detector de Smishing
+                    </p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="display-1 text-warning opacity-75">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conteúdo Principal -->
+    <section class="py-5">
+        <div class="container-lg">
+            <!-- O Projeto -->
+            <div class="row mb-5">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="h2 fw-bold mb-4">
+                        <i class="fas fa-project-diagram me-2 text-primary"></i>
+                        O Projeto
+                    </h2>
+                    <p class="lead text-muted mb-4">
+                        O Detector de Smishing é um projeto desenvolvido como Trabalho de Conclusão de Curso (TCC) da Universidade Virtual do Estado de São Paulo (UNIVESP), 
+                        no curso de Ciência de Dados. O objetivo é criar uma ferramenta educacional que ajude a população a identificar e se proteger 
+                        contra tentativas de fraude via SMS (phishing por SMS).
+                    </p>
+                    <p class="text-muted">
+                        Utilizando técnicas avançadas de Machine Learning e análise de texto, o projeto combina ciência de dados com segurança da informação 
+                        para oferecer uma solução prática e acessível. O sistema foi treinado com um dataset de mais de 3.000 mensagens SMS, 
+                        alcançando uma acurácia de 97,86% na detecção de smishing.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Motivação -->
+            <div class="row mb-5">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="h2 fw-bold mb-4">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>
+                        Motivação e Relevância
+                    </h2>
+                    <p class="text-muted mb-3">
+                        O smishing é uma ameaça crescente no Brasil e no mundo. A cada ano, milhões de pessoas recebem mensagens SMS fraudulentas 
+                        que tentam roubar dados pessoais, credenciais bancárias e dinheiro. Muitas vítimas não sabem como identificar essas mensagens, 
+                        tornando-se vulneráveis a ataques sofisticados.
+                    </p>
+                    <p class="text-muted mb-3">
+                        Este projeto surge da necessidade de democratizar o conhecimento sobre segurança digital e fornecer uma ferramenta gratuita 
+                        e acessível que ajude qualquer pessoa a se proteger contra esses ataques. Além disso, o sistema aprende continuamente com 
+                        o feedback dos usuários, melhorando sua capacidade de detecção ao longo do tempo.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Metodologia -->
+            <div class="row mb-5">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="h2 fw-bold mb-4">
+                        <i class="fas fa-flask me-2 text-info"></i>
+                        Metodologia
+                    </h2>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold mb-3">
+                                        <i class="fas fa-database me-2 text-primary"></i>
+                                        Coleta de Dados
+                                    </h5>
+                                    <p class="card-text text-muted">
+                                        Um dataset de 3.189 mensagens SMS foi coletado de fontes públicas e validado manualmente. 
+                                        O dataset contém 1.689 mensagens de smishing e 1.500 mensagens legítimas, garantindo uma distribuição equilibrada.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold mb-3">
+                                        <i class="fas fa-cogs me-2 text-success"></i>
+                                        Pré-processamento
+                                    </h5>
+                                    <p class="card-text text-muted">
+                                        As mensagens foram limpas, normalizadas e transformadas em vetores numéricos usando a técnica TF-IDF 
+                                        (Term Frequency-Inverse Document Frequency), um método padrão em processamento de linguagem natural.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold mb-3">
+                                        <i class="fas fa-brain me-2 text-warning"></i>
+                                        Treinamento
+                                    </h5>
+                                    <p class="card-text text-muted">
+                                        Dois modelos de Machine Learning foram treinados e comparados: Random Forest e Complement Naive Bayes. 
+                                        O Random Forest foi selecionado como modelo principal por sua superior acurácia.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title fw-bold mb-3">
+                                        <i class="fas fa-check-circle me-2 text-info"></i>
+                                        Validação
+                                    </h5>
+                                    <p class="card-text text-muted">
+                                        Os modelos foram validados com dados de teste para garantir precisão e confiabilidade em cenários reais. 
+                                        Métricas como acurácia, precisão, recall e F1-score foram calculadas.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tecnologias -->
+            <div class="row mb-5">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="h2 fw-bold mb-4">
+                        <i class="fas fa-code me-2 text-primary"></i>
+                        Tecnologias Utilizadas
+                    </h2>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title fw-bold mb-2">Backend</h6>
+                                    <p class="card-text text-muted small mb-2">
+                                        <strong>Python</strong> com FastAPI
+                                    </p>
+                                    <p class="card-text text-muted small mb-0">
+                                        <strong>Scikit-learn</strong> para ML
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title fw-bold mb-2">Frontend</h6>
+                                    <p class="card-text text-muted small mb-2">
+                                        <strong>HTML5</strong>, <strong>CSS3</strong>
+                                    </p>
+                                    <p class="card-text text-muted small mb-0">
+                                        <strong>JavaScript</strong>, <strong>Bootstrap 5</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title fw-bold mb-2">Visualização</h6>
+                                    <p class="card-text text-muted small mb-2">
+                                        <strong>Chart.js</strong> para gráficos
+                                    </p>
+                                    <p class="card-text text-muted small mb-0">
+                                        <strong>WordCloud.js</strong> para nuvem
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipe -->
+            <div class="row mb-5">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="h2 fw-bold mb-4">
+                        <i class="fas fa-users me-2 text-success"></i>
+                        A Equipe
+                    </h2>
+                    <p class="text-muted mb-4">
+                        Este projeto foi desenvolvido por estudantes da UNIVESP como parte do TCC em Ciência de Dados. 
+                        A equipe é composta por profissionais dedicados à segurança digital e inovação tecnológica.
+                    </p>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="display-6 text-primary mb-3">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <h5 class="card-title fw-bold">DEIVID RODRIGO CORREIA DE MELO</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        Ciência de Dados
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="display-6 text-primary mb-3">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <h5 class="card-title fw-bold">JOICE CRISTINA DA SILVA</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        Ciência de Dados
+                                    </p>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                      <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="display-6 text-primary mb-3">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <h5 class="card-title fw-bold">MAGNO BRUNO CAMARGO PROENÇA</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        Ciência de Dados
+                                    </p>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="display-6 text-primary mb-3">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <h5 class="card-title fw-bold">OBRIEN PINEDA TEIXEIRA</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        Ciência de Dados
+                                    </p>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>  
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="display-6 text-primary mb-3">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <h5 class="card-title fw-bold">TELMA FÁTIMA CLARITA DE CARVALHO</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        Ciência de Dados
+                                    </p>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <div class="display-6 text-primary mb-3">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <h5 class="card-title fw-bold">VAGNER SOUSA DOS SANTOS</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        Ciência de Dados
+                                    </p>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dados -->
+            <div class="row mb-5">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="h2 fw-bold mb-4">
+                        <i class="fas fa-database me-2 text-info"></i>
+                        Dados Utilizados
+                    </h2>
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-4 mb-3">
+                                    <h3 class="h3 fw-bold text-primary">3.189</h3>
+                                    <p class="text-muted">Total de Mensagens</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h3 class="h3 fw-bold text-success">1.500</h3>
+                                    <p class="text-muted">Mensagens Legítimas</p>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <h3 class="h3 fw-bold text-danger">1.689</h3>
+                                    <p class="text-muted">Mensagens de Smishing</p>
+                                </div>
+                            </div>
+                            <hr>
+                            <p class="text-muted small mb-0">
+                                Os dados foram coletados de fontes públicas e validados manualmente. 
+                                O dataset está em português (Moçambique) e reflete padrões reais de smishing observados em campanhas de fraude.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impacto -->
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <h2 class="h2 fw-bold mb-4">
+                        <i class="fas fa-star me-2 text-warning"></i>
+                        Impacto e Contribuição
+                    </h2>
+                    <p class="text-muted mb-3">
+                        Este projeto contribui para a segurança digital da população ao fornecer uma ferramenta educacional e prática 
+                        que ajuda na identificação de tentativas de fraude. Além disso, demonstra a aplicação prática de Machine Learning 
+                        em um problema real e relevante.
+                    </p>
+                    <p class="text-muted mb-3">
+                        O sistema de aprendizado contínuo permite que o modelo melhore constantemente com base no feedback dos usuários, 
+                        tornando-o mais eficaz ao longo do tempo. Isso cria um ciclo virtuoso onde a comunidade contribui para a melhoria 
+                        da ferramenta.
+                    </p>
+                    <p class="text-muted">
+                        Esperamos que este projeto inspire outros desenvolvedores e pesquisadores a criar soluções inovadoras para 
+                        problemas de segurança digital, contribuindo para um ambiente digital mais seguro para todos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 mt-5" style="background: linear-gradient(135deg, #003366 0%, #004d99 100%);">
+        <div class="container-lg text-center">
+            <h2 class="h2 fw-bold text-white mb-3">Quer Testar o Detector?</h2>
+            <p class="lead text-white-50 mb-4">
+                Vá para a página do detector e analise suas mensagens SMS
+            </p>
+            <a href="detector.html" class="btn btn-lg btn-warning">
+                <i class="fas fa-arrow-right me-2"></i>
+                Ir para o Detector
+            </a>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container-lg">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Sobre o Projeto</h6>
+                    <p class="text small">
+                        Detector de Smishing desenvolvido como TCC da UNIVESP
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Navegação</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="index.html" class="text-white text-decoration-none">Dashboard</a></li>
+                        <li><a href="detector.html" class="text-white text-decoration-none">Detector</a></li>
+                        <li><a href="sobre.html" class="text-white text-decoration-none">Sobre Nós</a></li>
+                        <li><a href="contato.html" class="text-white text-decoration-none">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Informações</h6>
+                    <p class="text small mb-2">
+                        <i class="fas fa-university me-2"></i>
+                        UNIVESP
+                    </p>
+                    <p class="text small">
+                        <i class="fas fa-code me-2"></i>
+                        Desenvolvido com ❤️
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-secondary">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text small mb-0">
+                        © 2025 Detector de Smishing. Todos os direitos reservados.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text small mb-0">
+                        Desenvolvido como material educacional
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html>
