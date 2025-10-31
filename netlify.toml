@@ -4,7 +4,7 @@
   # Define o comando de build
   command = "pnpm install --no-frozen-lockfile && pnpm run build"
   # Define o diretório de publicação (relativo ao Base directory)
-  publish = "client/dist"
+  publish = "dist"
 
 # Configuração para o roteamento SPA (Single Page Application)
 [[redirects]]
