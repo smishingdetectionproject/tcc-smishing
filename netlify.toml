@@ -1,7 +1,7 @@
 [build]
   # Define o diretório base onde o pnpm install e o build command serão executados
   base = "client"
-  # Define o comando de build
+  # Define o comando de build: instala dependências e executa o build do frontend
   command = "pnpm install --no-frozen-lockfile && pnpm run build"
   # Define o diretório de publicação (relativo ao Base directory)
   publish = "dist"
