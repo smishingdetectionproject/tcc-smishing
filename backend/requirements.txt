@@ -1,6 +1,14 @@
 fastapi==0.104.1
 uvicorn==0.24.0
+<<<<<<< HEAD
 scikit-learn>=1.3.2
+=======
+<<<<<<< HEAD
+scikit-learn>=1.3.2
+=======
+scikit-learn==1.3.2
+>>>>>>> 0c142115d593d626802dafabada357a62d5de7fc
+>>>>>>> 57c8751567e878b6486c96fe5b694b35b0fc6f9c
 pandas==2.1.3
 numpy==1.26.2
 python-multipart==0.0.6

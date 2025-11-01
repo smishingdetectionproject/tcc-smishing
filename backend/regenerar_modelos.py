@@ -165,10 +165,23 @@ try:
     f1 = f1_score(y_test, y_pred, zero_division=0)
     
     print(f"✓ Random Forest treinado:")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 57c8751567e878b6486c96fe5b694b35b0fc6f9c
     print(f"  ⭐ F1-Score: {f1:.2%} (Métrica Principal para Dataset Desbalanceado)")
     print(f"  Precisão: {precision:.2%}")
     print(f"  Recall: {recall:.2%}")
     print(f"  Acurácia: {accuracy:.2%}")
+<<<<<<< HEAD
+=======
+=======
+    print(f"  Acurácia: {accuracy:.2%}")
+    print(f"  Precisão: {precision:.2%}")
+    print(f"  Recall: {recall:.2%}")
+    print(f"  F1-Score: {f1:.2%}")
+>>>>>>> 0c142115d593d626802dafabada357a62d5de7fc
+>>>>>>> 57c8751567e878b6486c96fe5b694b35b0fc6f9c
     
     # Salvar modelo
     with open(BACKEND_DIR / "random_forest.pkl", "wb") as f:
@@ -199,10 +212,23 @@ try:
     f1 = f1_score(y_test, y_pred, zero_division=0)
     
     print(f"✓ Complement Naive Bayes treinado:")
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 57c8751567e878b6486c96fe5b694b35b0fc6f9c
     print(f"  ⭐ F1-Score: {f1:.2%} (Métrica Principal para Dataset Desbalanceado)")
     print(f"  Precisão: {precision:.2%}")
     print(f"  Recall: {recall:.2%}")
     print(f"  Acurácia: {accuracy:.2%}")
+<<<<<<< HEAD
+=======
+=======
+    print(f"  Acurácia: {accuracy:.2%}")
+    print(f"  Precisão: {precision:.2%}")
+    print(f"  Recall: {recall:.2%}")
+    print(f"  F1-Score: {f1:.2%}")
+>>>>>>> 0c142115d593d626802dafabada357a62d5de7fc
+>>>>>>> 57c8751567e878b6486c96fe5b694b35b0fc6f9c
     
     # Salvar modelo
     with open(BACKEND_DIR / "complement_naive_bayes.pkl", "wb") as f:
