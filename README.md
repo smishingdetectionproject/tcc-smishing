@@ -360,5 +360,5 @@ Para dúvidas, sugestões ou feedback, utilize o formulário de contato disponí
 **Desenvolvido com ❤️ para a comunidade brasileira**
 
 **Criado em**: Outubro de 2025  
-**Versão**: 1.0.0  
-**Status**: Em Teste
+**Versão**: 1.1.0  
+**Status**: Em Desenvolvimento e Teste
