@@ -217,21 +217,23 @@ function validarEmailRegex(email) {
 }
 
 // ============================================================================
-// FUNÇÕES AUXILIARES DE NOTIFICAÇÃO (MOCK)
+// FUNÇÕES AUXILIARES DE NOTIFICAÇÃO (USANDO ALERT)
 // ============================================================================
 
 /**
- * Função de notificação (assumindo que existe no projeto)
+ * Função de notificação (usando alert simples para garantir o feedback)
  * @param {string} mensagem 
  * @param {string} tipo 
  */
 function mostrarNotificacao(mensagem, tipo) {
+    // Para garantir que a mensagem de sucesso apareça, usaremos um alert simples.
+    // O tipo (success, warning, danger) é usado apenas para contexto no console.
+    if (tipo === 'success') {
+        alert(`Sucesso: ${mensagem}`);
+    } else {
+        alert(`Atenção: ${mensagem}`);
+    }
     console.log(`[NOTIFICAÇÃO ${tipo.toUpperCase()}]: ${mensagem}`);
-    // Implementação real dependeria de como as notificações são exibidas (ex: Toast, Alert)
-    // Para fins de correção do JS, o console.log é suficiente.
-    
-    // Se o usuário não tiver a função, ele pode adicionar um simples alert:
-    // alert(`${tipo.toUpperCase()}: ${mensagem}`);
 }
 
 // ============================================================================
@@ -252,5 +254,4 @@ function mostrarNotificacao(mensagem, tipo) {
  */
 
 console.log('%cFormulário de Contato Carregado', 'font-size: 14px; font-weight: bold; color: #003366;');
-console.log('%cNota: O script agora usa Fetch API para submissão assíncrona ao Formspree.', 'color: #999; font-style: italic;');
-console.log('%cCertifique-se de que a função `mostrarNotificacao` está definida globalmente.', 'color: #999; font-style: italic;');
+console.log('%cNota: O script agora usa Fetch API para submissão assíncrona ao Formspree e alert() para notificações.', 'color: #999; font-style: italic;');

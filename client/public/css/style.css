@@ -576,3 +576,45 @@ body {
 .text-white {
     color: var(--bg-white);
 }
+
+/*
+ * CORREÇÃO PARA CLAREAR A COR DOS PLACEHOLDERS
+ *
+ * O seletor ::placeholder é necessário para estilizar o texto de placeholder
+ * em diferentes navegadores.
+ *
+ * A cor #adb5bd é um cinza claro do Bootstrap (text-muted) que é mais sutil.
+ */
+
+.form-control::placeholder {
+    color: #adb5bd; /* Cor mais clara */
+    opacity: 1; /* Garante que a cor seja aplicada corretamente */
+}
+
+.form-select::placeholder {
+    color: #adb5bd;
+    opacity: 1;
+}
+
+textarea::placeholder {
+    color: #adb5bd;
+    opacity: 1;
+}
+
+/* Para navegadores baseados em WebKit (Chrome, Safari) */
+.form-control::-webkit-input-placeholder {
+    color: #adb5bd;
+    opacity: 1;
+}
+
+/* Para Firefox */
+.form-control:-moz-placeholder {
+    color: #adb5bd;
+    opacity: 1;
+}
+
+/* Para IE */
+.form-control:-ms-input-placeholder {
+    color: #adb5bd;
+    opacity: 1;
+}
