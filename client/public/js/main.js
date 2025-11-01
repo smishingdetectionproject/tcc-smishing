@@ -9,13 +9,14 @@
 // ============================================================================
 
 // URL da API Backend (detecta automaticamente ambiente)
-// Em produção, defina a variável VITE_API_URL ou use a URL padrão
+// A sintaxe 'import.meta' foi removida para evitar o SyntaxError em scripts normais.
+// A URL de produção é definida diretamente.
 const API_BASE_URL = (
     window.location.hostname === 'localhost' || 
     window.location.hostname === '127.0.0.1'
 ) 
     ? 'http://localhost:8000'  // Desenvolvimento local
-    : (import.meta?.env?.VITE_API_URL || 'https://detector-smishing-backend.onrender.com' );  // Produção
+    : 'https://detector-smishing-backend.onrender.com';  // Produção (URL do Render)
 
 
 // ============================================================================
@@ -42,7 +43,14 @@ async function fazerRequisicaoAPI(endpoint, metodo = 'GET', dados = null ) {
         const resposta = await fetch(`${API_BASE_URL}${endpoint}`, opcoes);
         
         if (!resposta.ok) {
-            throw new Error(`Erro na requisição: ${resposta.status}`);
+            let erroDetalhe = `Erro na requisição: ${resposta.status} ${resposta.statusText}`;
+            try {
+                const erroJson = await resposta.json();
+                erroDetalhe = erroJson.detail || erroDetalhe;
+            } catch (e) {
+                // Ignora se a resposta não for JSON
+            }
+            throw new Error(erroDetalhe);
         }
         
         return await resposta.json();
@@ -202,6 +210,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const apiDisponivel = await verificarConectividadeAPI();
     
     if (!apiDisponivel) {
+        mostrarNotificacao('Aviso: A API backend não está disponível. Algumas funcionalidades podem não funcionar.', 'warning');
         console.warn('Aviso: A API backend não está disponível. Algumas funcionalidades podem não funcionar.');
     }
 });
