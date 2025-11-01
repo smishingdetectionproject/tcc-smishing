@@ -1,36 +1,19 @@
-# Configuração do Netlify para o Detector de Smishing
-# Este arquivo deve estar na raiz do repositório
-
 [build]
-  # Comando para fazer build do frontend
-  # O Netlify usará o pnpm e a versão do Node especificada no .nvmrc
   command = "pnpm install --no-frozen-lockfile && pnpm run build"
-  
-  # Diretório que será publicado (resultado do build do Vite)
   publish = "dist/public"
-  
-  # Diretório base do projeto (o Netlify deve rodar o build a partir da raiz)
   base = "."
 
 # Configuração para o roteamento SPA (Single Page Application)
-# Redireciona todas as rotas para index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Headers de segurança e CORS
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-
 # Configuração de Node.js
 [build.environment]
-  # O Netlify tentou instalar Python porque encontrou um arquivo de configuração Python.
-  # Vamos garantir que ele use o Node.js e o pnpm.
   NODE_VERSION = "22"
   NPM_FLAGS = "--legacy-peer-deps"
+
+# FORÇA A VARIÁVEL DE AMBIENTE NO BUILD DE PRODUÇÃO
+[context.production.environment]
+  VITE_API_URL = "https://detector-smishing-backend.onrender.com"
