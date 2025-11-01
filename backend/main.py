@@ -185,7 +185,7 @@ def extrair_caracteristicas_smishing(mensagem: str) -> list[CaracteristicaDetect
     if any(palavra in mensagem_lower for palavra in palavras_dinheiro):
         caracteristicas.append(CaracteristicaDetectada(
             nome="Pedido de Dinheiro",
-            descrita="Solicita transferências ou pagamentos.",
+            descricao="Solicita transferências ou pagamentos.",
             icone="💰",
             confianca=0.80
         ))
@@ -260,6 +260,8 @@ def analisar_com_modelo(mensagem: str, modelo_nome: str = "random_forest") -> tu
     probabilidades = modelo.predict_proba(X)[0]
     
     # Mapear predição para veredito
+    # CORREÇÃO APLICADA AQUI: 
+    # 1 é Smishing, 0 é Legítima (conforme o treinamento do modelo)
     veredito = "Smishing" if predicao == 1 else "Legítima"
     confianca = max(probabilidades)
     
@@ -320,140 +322,96 @@ async def analisar_mensagem(request: AnaliseRequest):
     
     try:
         # Analisar com modelo
-        veredito, confianca = analisar_com_modelo(
-            request.mensagem,
-            request.modelo
-        )
+        veredito, confianca = analisar_com_modelo(request.mensagem, request.modelo)
         
-        # Extrair características
+        # Extrair características heurísticas
         caracteristicas = extrair_caracteristicas_smishing(request.mensagem)
         
         # Gerar explicação
         if veredito == "Smishing":
-            explicacao = (
-                "Esta mensagem foi classificada como uma potencial tentativa de "
-                "smishing (phishing por SMS). Ela apresenta características comuns "
-                "em mensagens fraudulentas. Não clique em links, não compartilhe "
-                "dados pessoais e não realize transferências solicitadas."
-            )
+            explicacao = "Esta mensagem foi classificada como **Smishing**. Recomendamos extrema cautela. Não clique em links, não forneça dados pessoais e entre em contato diretamente com a suposta instituição por canais oficiais."
         else:
-            explicacao = (
-                "Esta mensagem foi classificada como legítima. No entanto, sempre "
-                "mantenha a cautela com mensagens não esperadas. Se tiver dúvidas, "
-                "entre em contato diretamente com a instituição."
-            )
+            explicacao = "Esta mensagem foi classificada como legítima. No entanto, sempre mantenha a cautela com mensagens não esperadas. Se tiver dúvidas, entre em contato diretamente com a instituição."
         
+        # Se for legítima, mas tiver características suspeitas, adicionar um alerta
+        if veredito == "Legítima" and len(caracteristicas) > 0:
+            explicacao += " **ATENÇÃO:** Embora o modelo a considere legítima, foram detectadas características comuns em golpes. Prossiga com cautela."
+        
+        # Se for Smishing, mas a confiança for baixa, adicionar um alerta
+        if veredito == "Smishing" and confianca < 0.7:
+            explicacao += " **NOTA:** A confiança do modelo nesta classificação é baixa. Considere a análise das características detectadas."
+            
+        # Retornar resposta
         return AnaliseResponse(
             veredito=veredito,
-            confianca=round(confianca, 2),
+            confianca=round(confianca * 100, 2),
             caracteristicas=caracteristicas,
             explicacao=explicacao,
             modelo_usado=request.modelo
         )
         
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        print(f"Erro durante análise: {e}")
+        print(f"Erro inesperado na análise: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Erro ao processar a análise"
+            detail=f"Erro interno do servidor: {e}"
         )
 
 
 @app.post("/feedback", response_model=FeedbackResponse)
 async def registrar_feedback(request: FeedbackRequest):
     """
-    Registra o feedback do usuário sobre a análise para aprendizado contínuo.
+    Registra o feedback do usuário sobre a análise.
     
     Args:
-        request: Objeto contendo a mensagem, veredito e feedback
+        request: Objeto contendo a mensagem, veredito original e feedback
         
     Returns:
-        Confirmação de sucesso
+        Resposta de sucesso
     """
     try:
-        # Criar arquivo de feedback se não existir
-        feedback_file = DATA_DIR / "feedback.csv"
+        # Caminho para o arquivo de log de feedback
+        feedback_file = DATA_DIR / "feedback_log.csv"
         
-        # Preparar dados
-        feedback_data = {
+        # Preparar dados para o log
+        log_data = {
             "timestamp": datetime.now().isoformat(),
-            "mensagem": request.mensagem[:100],  # Truncar para privacidade
+            "mensagem": request.mensagem,
             "veredito_original": request.veredito_original,
             "feedback_util": request.feedback_util,
-            "comentario": request.feedback_usuario or ""
+            "feedback_usuario": request.feedback_usuario if request.feedback_usuario else ""
         }
         
-        # Salvar feedback
-        if feedback_file.exists():
-            # Adicionar à linha existente
-            with open(feedback_file, "a", newline="", encoding="utf-8") as f:
-                writer = csv.DictWriter(f, fieldnames=feedback_data.keys())
-                writer.writerow(feedback_data)
-        else:
-            # Criar novo arquivo com header
-            with open(feedback_file, "w", newline="", encoding="utf-8") as f:
-                writer = csv.DictWriter(f, fieldnames=feedback_data.keys())
-                writer.writeheader()
-                writer.writerow(feedback_data)
+        # Verificar se o arquivo existe para escrever o cabeçalho
+        file_exists = os.path.exists(feedback_file)
         
+        with open(feedback_file, 'a', newline='', encoding='utf-8') as csvfile:
+            fieldnames = log_data.keys()
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            
+            if not file_exists:
+                writer.writeheader()  # Escreve o cabeçalho apenas se o arquivo for novo
+            
+            writer.writerow(log_data)
+            
         return FeedbackResponse(
             sucesso=True,
-            mensagem="Feedback registrado com sucesso. Obrigado por ajudar a melhorar o modelo!"
+            mensagem="Feedback registrado com sucesso!"
         )
         
     except Exception as e:
         print(f"Erro ao registrar feedback: {e}")
         raise HTTPException(
             status_code=500,
-            detail="Erro ao registrar feedback"
+            detail=f"Erro interno ao registrar feedback: {e}"
         )
-
-
-@app.get("/estatisticas")
-async def obter_estatisticas():
-    """
-    Retorna estatísticas sobre os dados de treinamento.
-    
-    Returns:
-        Dicionário com estatísticas dos dados
-    """
-    if data_df is None:
-        raise HTTPException(
-            status_code=500,
-            detail="Dados de treinamento não carregados"
-        )
-    
-    try:
-        # Contar classes
-        contagem_classes = data_df["label"].value_counts().to_dict() if "label" in data_df.columns else {}
-        
-        return {
-            "total_mensagens": len(data_df),
-            "contagem_classes": contagem_classes,
-            "colunas": list(data_df.columns),
-            "timestamp": datetime.now().isoformat()
-        }
-    except Exception as e:
-        print(f"Erro ao obter estatísticas: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Erro ao obter estatísticas"
-        )
-
 
 # ============================================================================
-# EXECUÇÃO
+# EXECUÇÃO LOCAL (opcional)
 # ============================================================================
 
 if __name__ == "__main__":
     import uvicorn
-    
-    # Executar servidor
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        reload=True  # Recarregar automaticamente ao fazer mudanças
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8000)
