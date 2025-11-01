@@ -6,11 +6,17 @@ import path from "path";
 import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
-
 const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+
+// Define a URL do backend para ser injetada no código durante o build
+// Isso garante que o valor configurado no Netlify (process.env.VITE_API_URL) seja usado
+const VITE_API_URL = process.env.VITE_API_URL || "http://localhost:8000";
 
 export default defineConfig({
   plugins,
+  define: {
+    "import.meta.env.VITE_API_URL": JSON.stringify(VITE_API_URL ),
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
