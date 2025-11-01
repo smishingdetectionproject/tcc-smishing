@@ -186,9 +186,9 @@
                                         <i class="fas fa-thumbs-up me-2 text-success"></i>
                                         Esta análise foi útil?
                                     </p>
-                                    <div class="feedback-buttons">
+                                    <div id="feedbackButtonsContainer">
                                         <button 
-                                            class="feedback-btn" 
+                                            class="btn btn-primary me-2" 
                                             id="feedbackSim"
                                             data-feedback="true"
                                         >
@@ -196,20 +196,26 @@
                                             Sim, foi útil
                                         </button>
                                         <button 
-                                            class="feedback-btn" 
+                                            class="btn btn-outline-secondary" 
                                             id="feedbackNao"
                                             data-feedback="false"
                                         >
                                             <i class="fas fa-times me-2"></i>
                                             Não foi útil
                                         </button>
+                                        <small class="text-muted d-block mt-3">
+                                            Seu feedback nos ajuda a melhorar o modelo
+                                        </small>
                                     </div>
-                                    <small class="text-muted d-block mt-3">
-                                        Seu feedback nos ajuda a melhorar o modelo
-                                    </small>
                                     
-                                    <!-- Campo de Comentário Opcional -->
-                                    <div id="comentarioFeedbackContainer" class="mt-4" style="display: none;">
+                                    <!-- Formulário de Feedback Opcional (Inicialmente Oculto) -->
+                                    <div id="feedbackFormContainer" class="mt-4 p-3 border rounded" style="display: none;">
+                                        <p class="fw-bold" id="feedbackMensagemConscientizacao">
+                                            <!-- Mensagem de conscientização será inserida aqui -->
+                                        </p>
+                                        
+                                        <input type="hidden" id="feedbackUtilInput">
+                                        
                                         <label for="comentarioFeedback" class="form-label fw-bold">
                                             Comentário (Opcional)
                                         </label>
@@ -217,22 +223,29 @@
                                             class="form-control" 
                                             id="comentarioFeedback" 
                                             rows="3" 
-                                            placeholder="Explique por que a análise foi útil ou não, para ajudar no treinamento do modelo."
+                                            placeholder="Explique o motivo do seu feedback para ajudar no treinamento do modelo."
                                         ></textarea>
                                         <small class="text-muted d-block mt-2">
                                             Seu comentário é anônimo e essencial para aprimorar a inteligência artificial.
                                         </small>
+                                        
+                                        <!-- Botão de Envio de Feedback -->
+                                        <div class="d-flex justify-content-between mt-3">
+                                            <button 
+                                                class="btn btn-success" 
+                                                id="enviarFeedbackBtn" 
+                                            >
+                                                <i class="fas fa-paper-plane me-2"></i>
+                                                Enviar Feedback
+                                            </button>
+                                            <button 
+                                                class="btn btn-outline-secondary" 
+                                                id="pularFeedbackBtn" 
+                                            >
+                                                Pular e Finalizar
+                                            </button>
+                                        </div>
                                     </div>
-                                    
-                                    <!-- Botão de Envio de Feedback -->
-                                    <button 
-                                        class="btn btn-success mt-3" 
-                                        id="enviarFeedbackBtn" 
-                                        style="display: none;"
-                                    >
-                                        <i class="fas fa-paper-plane me-2"></i>
-                                        Enviar Feedback
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -256,7 +269,7 @@
                                 <i class="fas fa-lightbulb me-2 text-warning"></i>
                                 Dicas de Segurança
                             </h5>
-                            <ul class="list-unstyled small">
+                            <ul class="list-unstyled">
                                 <li class="mb-2">
                                     <i class="fas fa-check-circle text-success me-2"></i>
                                     <strong>Desconfie de mensagens urgentes:</strong> Criminosos usam pressão de tempo
