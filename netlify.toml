@@ -3,12 +3,13 @@
 
 [build]
   # Comando para fazer build do frontend
+  # O Netlify usará o pnpm e a versão do Node especificada no .nvmrc
   command = "pnpm install && pnpm run build"
   
   # Diretório que será publicado (resultado do build do Vite)
   publish = "dist/public"
   
-  # Diretório base do projeto
+  # Diretório base do projeto (o Netlify deve rodar o build a partir da raiz)
   base = "."
 
 # Configuração para o roteamento SPA (Single Page Application)
@@ -29,5 +30,7 @@
 
 # Configuração de Node.js
 [build.environment]
+  # O Netlify tentou instalar Python porque encontrou um arquivo de configuração Python.
+  # Vamos garantir que ele use o Node.js e o pnpm.
   NODE_VERSION = "22"
   NPM_FLAGS = "--legacy-peer-deps"
