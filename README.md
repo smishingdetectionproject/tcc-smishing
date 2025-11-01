@@ -120,97 +120,31 @@ Este projeto foi desenvolvido por estudantes da UNIVESP como parte do TCC:
 ## 📁 Estrutura do Projeto
 
 ```
-detector-smishing-tcc/
-├── backend/                          # API Backend em Python
-│   ├── main.py                       # Arquivo principal da API
-│   ├── requirements.txt              # Dependências Python
-│   ├── tfidf_vectorizer.pkl          # Vetorizador TF-IDF
-│   ├── random_forest.pkl             # Modelo Random Forest
-│   ├── complement_naive_bayes.pkl    # Modelo Naive Bayes
-│   ├── data_processed.csv            # Dados de treinamento
-│   ├── data/                         # Diretório de dados gerados
-│   └── README.md                     # Documentação do backend
-│
-├── client/                           # Frontend Web
-│   ├── public/                       # Arquivos estáticos
-│   │   ├── index.html                # Dashboard
-│   │   ├── detector.html             # Página do detector
-│   │   ├── sobre.html                # Página Sobre Nós
-│   │   ├── contato.html              # Página de Contato
-│   │   ├── css/
-│   │   │   └── style.css             # Estilos globais
-│   │   └── js/
-│   │       ├── main.js               # Scripts globais
-│   │       ├── charts.js             # Gráficos e visualizações
-│   │       ├── detector.js           # Lógica do detector
-│   │       └── contato.js            # Lógica do formulário
-│   └── README.md                     # Documentação do frontend
-│
-├── README.md                         # Este arquivo
-└── .gitignore                        # Arquivos ignorados pelo Git
+tcc-smishing/
+├── .git/                     # Arquivos de controle de versão
+├── backend/                  # Backend Python (FastAPI)
+│   ├── main.py               # Lógica principal e endpoints da API
+│   ├── requirements.txt      # Dependências Python
+│   ├── models/               # Modelos de Machine Learning (PKL)
+│   ├── data/                 # Dados de treinamento/processamento
+│   ├── build.sh              # Script de build para o Render
+│   └── ...                   # Outros arquivos de configuração e modelo
+├── client/                   # Frontend Estático
+│   └── public/               # Conteúdo estático (HTML, CSS, JS)
+│       ├── index.html        # Página principal
+│       ├── detector.html     # Página do detector
+│       ├── contato.html      # Página de contato
+│       ├── css/              # Arquivos CSS
+│       └── js/               # Arquivos JavaScript
+├── docs/                     # Documentação do projeto
+├── notebooks/                # Jupyter Notebooks (Processamento de dados e treinamento)
+├── .gitignore                # Arquivos ignorados pelo Git
+├── netlify.toml              # Configuração de deploy do Frontend (Netlify)
+└── README.md                 # Este arquivo
 ```
 
 ---
 
-## 🔧 Como Executar Localmente
-
-### Pré-requisitos
-
-- **Python 3.8+** (para o backend)
-- **Node.js 14+** (opcional, para servir o frontend)
-- **Git** (para clonar o repositório)
-
-### Backend
-
-1. **Navegue até o diretório do backend:**
-   ```
-   cd backend
-   ```
-
-2. **Crie um ambiente virtual:**
-   ```
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
-
-   # macOS/Linux
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Instale as dependências:**
-   ```
-   pip install -r requirements.txt
-   ```
-
-4. **Execute a API:**
-   ```
-   python main.py
-   ```
-
-   A API estará disponível em `http://localhost:8000`
-
-   **Documentação interativa:**
-   - Swagger UI: `http://localhost:8000/docs`
-   - ReDoc: `http://localhost:8000/redoc`
-
-### Frontend
-
-1. **Abra o arquivo `client/public/index.html` em um navegador** ou use um servidor local:
-
-   ```
-   # Com Python
-   cd client/public
-   python -m http.server 3000
-
-   # Com Node.js (http-server)
-   npm install -g http-server
-   http-server client/public -p 3000
-   ```
-
-   O frontend estará disponível em `http://localhost:3000`
-
----
 
 ## 📊 Dados de Treinamento
 
@@ -298,7 +232,7 @@ Este projeto é fornecido como material educacional. Todos os direitos reservado
 ## 📞 Contato
 
 Para dúvidas, sugestões ou feedback, utilize o formulário de contato disponível em:
-- **URL**: [URL DISPONÍVEL NO FUTURO](https://dashboardipcaecombustiveis.netlify.app/contato)
+- **URL**: [Entre em Contato](https://detectordesmishing.netlify.app/contato)
 
 ---
 
@@ -330,5 +264,5 @@ Para dúvidas, sugestões ou feedback, utilize o formulário de contato disponí
 **Desenvolvido com ❤️ para a comunidade brasileira**
 
 **Criado em**: Outubro de 2025  
-**Versão**: 1.1.0  
-**Status**: Em Desenvolvimento e Teste
+**Versão**: 1.1.1  
+**Status**: Em Fase Final de Desenvolvimento e Teste
