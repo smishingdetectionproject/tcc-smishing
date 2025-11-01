@@ -278,36 +278,6 @@ O projeto utiliza um dataset de **3.189 mensagens SMS** em português (Brasileir
 
 ---
 
-## 🚀 Deploy em Produção
-
-### Backend - PythonAnywhere
-
-1. Crie uma conta em [PythonAnywhere](https://www.pythonanywhere.com)
-2. Faça upload dos arquivos do backend
-3. Configure um web app com Python 3.11
-4. Instale as dependências
-5. Configure o WSGI para apontar para `main.py`
-
-**Vantagens:**
-- Gratuito
-- Sem modo de suspensão
-- Sem necessidade de cartão de crédito
-
-### Frontend - Netlify
-
-1. Crie uma conta em [Netlify](https://www.netlify.com)
-2. Conecte seu repositório GitHub
-3. Configure o build (se necessário)
-4. Deploy automático
-
-**Vantagens:**
-- Gratuito
-- CI/CD automático
-- CDN global
-- HTTPS incluído
-
----
-
 ### Código-Fonte
 Todo o código está documentado com comentários explicativos em português.
 
