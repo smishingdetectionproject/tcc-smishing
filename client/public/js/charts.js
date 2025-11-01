@@ -205,10 +205,13 @@ function criarNuvemPalavras() {
     ];
     
     // Criar nuvem de palavras
+    // Limpar o container antes de criar a nova nuvem
+    container.innerHTML = '';
+    
     WordCloud(container, {
         list: palavras,
         gridSize: 18,
-        weightFactor: 3,
+        weightFactor: 1,
         fontFamily: "'Poppins', sans-serif",
         color: function() {
             return cores[Math.floor(Math.random() * cores.length)];
@@ -216,7 +219,12 @@ function criarNuvemPalavras() {
         backgroundColor: '#f8f9fa',
         click: function(item) {
             console.log('Palavra clicada:', item[0]);
-        }
+        },
+        // Adicionar responsividade
+        minSize: 0, // Permitir tamanhos muito pequenos
+        shuffle: true, // Melhor distribuição em telas pequenas
+        rotateRatio: 0.5, // Rotação para melhor preenchimento
+        drawOutOfBound: false // Não desenhar fora do limite
     });
 }
 
@@ -235,8 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function() {
-            // Recarregar página para recriar gráficos
-            // Ou usar Chart.js resize() se necessário
+            // Recriar a nuvem de palavras para ajustar ao novo tamanho
+            criarNuvemPalavras();
         }, 250);
     });
 });

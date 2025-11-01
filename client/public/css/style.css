@@ -258,12 +258,15 @@ a:hover {
     width: 2px;
     height: 100%;
     background: var(--border-color);
+    z-index: 0;
 }
 
 .timeline-item {
     margin-bottom: var(--spacing-2xl);
     display: flex;
     gap: var(--spacing-xl);
+    position: relative;
+    z-index: 1;
 }
 
 .timeline-item:nth-child(odd) {
@@ -284,6 +287,8 @@ a:hover {
     font-size: 1.5rem;
     flex-shrink: 0;
     box-shadow: var(--shadow-md);
+    position: relative;
+    z-index: 2;
 }
 
 .timeline-content {
@@ -291,6 +296,8 @@ a:hover {
     padding: var(--spacing-lg);
     background: var(--bg-light);
     border-radius: var(--border-radius-lg);
+    position: relative;
+    z-index: 1;
 }
 
 .timeline-content h5 {
@@ -413,6 +420,7 @@ a:hover {
    ============================================================================ */
 
 @media (max-width: 992px) {
+
     h1 { font-size: 2rem; }
     h2 { font-size: 1.75rem; }
     h3 { font-size: 1.25rem; }

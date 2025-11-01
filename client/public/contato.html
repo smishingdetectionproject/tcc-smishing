@@ -51,7 +51,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-section py-5" style="background: linear-gradient(135deg, #003366 0%, #004d99 100%);">
+    <section class="hero-section py-5" style="background: linear-gradient(135deg, #003366 0%, #004d99 100% );">
         <div class="container-lg">
             <div class="row align-items-center">
                 <div class="col-lg-8">
@@ -75,9 +75,10 @@
     <section class="py-5">
         <div class="container-lg">
             <div class="row g-4">
-                <!-- Informações de Contato -->
+                <!-- Coluna da Esquerda (Informações + FAQ) -->
                 <div class="col-lg-4">
-                    <div class="card">
+                    <!-- Informações de Contato -->
+                    <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title fw-bold mb-4">
                                 <i class="fas fa-info-circle me-2 text-primary"></i>
@@ -100,7 +101,8 @@
                                     Projeto
                                 </h6>
                                 <p class="text-muted small mb-0">
-                                    Trabalho de Conclusão de Curso (TCC)<br>
+                                    Trabalho de Conclusão de Curso (TCC)  
+
                                     Ciência de Dados
                                 </p>
                             </div>
@@ -116,9 +118,93 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Seção de Perguntas Frequentes (FAQ ) -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-4">
+                                <i class="fas fa-question-circle me-2 text-primary"></i>
+                                Perguntas Frequentes (FAQ)
+                            </h5>
+
+                            <div class="accordion" id="faqAccordion">
+                                
+                                <!-- Pergunta 1 -->
+                                <div class="accordion-item shadow-sm mb-3">
+                                    <h2 class="accordion-header" id="headingOne">
+                                        <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                            O que exatamente é Smishing e por que ele é perigoso?
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted">
+                                            Smishing é a junção de "SMS" (serviço de mensagens curtas) e "phishing". É uma forma de fraude onde criminosos enviam mensagens de texto (SMS) que parecem ser de fontes confiáveis (bancos, empresas de entrega, órgãos governamentais) para induzir a vítima a clicar em um link malicioso, baixar um anexo ou fornecer informações confidenciais. É perigoso porque as pessoas tendem a confiar mais em mensagens de texto do que em e-mails, e a urgência e o senso de autoridade usados nas mensagens levam a decisões precipitadas.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pergunta 2 -->
+                                <div class="accordion-item shadow-sm mb-3">
+                                    <h2 class="accordion-header" id="headingTwo">
+                                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                            Como surgiu o projeto Detector de Smishing?
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted">
+                                            O projeto nasceu como Trabalho de Conclusão de Curso (TCC) na UNIVESP, no curso de Ciência de Dados. A motivação principal foi a crescente onda de ataques de smishing no Brasil e a falta de ferramentas acessíveis e em português para a detecção. O objetivo foi aplicar os conhecimentos de Machine Learning e Processamento de Linguagem Natural (PLN) para criar uma solução prática que pudesse servir como ferramenta educacional e de proteção para a comunidade.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pergunta 3 -->
+                                <div class="accordion-item shadow-sm mb-3">
+                                    <h2 class="accordion-header" id="headingThree">
+                                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                            Qual a tecnologia de Machine Learning utilizada?
+                                        </button>
+                                    </h2>
+                                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted">
+                                            O projeto utiliza dois modelos principais de Machine Learning: Random Forest e Complement Naive Bayes. O modelo Random Forest, por apresentar um F1-Score superior, é o modelo recomendado para a detecção. As mensagens são pré-processadas usando a técnica TF-IDF (Term Frequency-Inverse Document Frequency) para transformar o texto em vetores numéricos que os modelos podem analisar. O backend é construído em Python com o framework FastAPI.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pergunta 4 -->
+                                <div class="accordion-item shadow-sm mb-3">
+                                    <h2 class="accordion-header" id="headingFour">
+                                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                            O Detector de Smishing é 100% preciso?
+                                        </button>
+                                    </h2>
+                                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted">
+                                            Nenhum modelo de Machine Learning é 100% preciso, especialmente em um campo dinâmico como a segurança cibernética. Nosso modelo principal (Random Forest) alcança um F1-Score de aproximadamente 96.80%, o que é um excelente resultado. No entanto, ele deve ser usado como uma ferramenta de apoio. Se o detector classificar uma mensagem como legítima, mas você ainda tiver dúvidas, a cautela é sempre a melhor defesa. O sistema também se beneficia do feedback dos usuários para melhorar continuamente.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pergunta 5 -->
+                                <div class="accordion-item shadow-sm mb-3">
+                                    <h2 class="accordion-header" id="headingFive">
+                                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                            Como posso contribuir para o projeto?
+                                        </button>
+                                    </h2>
+                                    <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                                        <div class="accordion-body text-muted">
+                                            Você pode contribuir de várias formas! A mais importante é utilizando a ferramenta e fornecendo feedback sobre a precisão das análises. Se você é desenvolvedor, pode visitar nosso repositório no GitHub (link na seção "Outras Formas de Contato") para sugerir melhorias ou contribuir com código. Se tiver dúvidas ou sugestões, use o formulário de contato acima. Seu envolvimento é crucial para o aprimoramento contínuo do modelo.
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Formulário de Contato -->
+                <!-- Coluna da Direita (Formulário de Contato) -->
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-lg">
                         <div class="card-body p-5">
@@ -127,7 +213,7 @@
                                 Envie uma Mensagem
                             </h3>
 
-                            <form id="formularioContato" method="POST" action="https://formspree.io/f/YOUR_FORM_ID">
+                            <form id="formularioContato" method="POST" action="https://formspree.io/f/mzzkkpqe">
                                 <!-- Nome -->
                                 <div class="mb-4">
                                     <label for="nome" class="form-label fw-bold">
@@ -161,7 +247,7 @@
                                     </small>
                                 </div>
 
-                                <!-- Telefone (Opcional) -->
+                                <!-- Telefone (Opcional ) -->
                                 <div class="mb-4">
                                     <label for="telefone" class="form-label fw-bold">
                                         Telefone (Opcional)
@@ -269,14 +355,13 @@
                     <p class="lead text-muted mb-5">
                         Você também pode nos encontrar em:
                     </p>
-                    <div class="row g-4">
+                    <div class="row g-4 justify-content-center">
                         <div class="col-md-4">
-                            <a href="#" class="btn btn-outline-primary btn-lg w-100">
+                            <a href="https://github.com/smishingdetectionproject/tcc-smishing" class="btn btn-outline-primary btn-lg w-100">
                                 <i class="fab fa-github me-2"></i>
                                 GitHub
                             </a>
                         </div>
-                        
                         <div class="col-md-4">
                             <a href="mailto:tcccienciadedadosunivesp2025@gmail.com" class="btn btn-outline-primary btn-lg w-100">
                                 <i class="fas fa-envelope me-2"></i>

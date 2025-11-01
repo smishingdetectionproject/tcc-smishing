@@ -8,11 +8,18 @@
 // CONFIGURAÇÃO GLOBAL
 // ============================================================================
 
-// URL da API Backend (ajustar conforme necessário)
-const API_BASE_URL = 'http://localhost:8000';
+// URL da API Backend (detecta automaticamente ambiente)
+// Em produção, defina a variável VITE_API_URL ou use a URL padrão
+const API_BASE_URL = (
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1'
+) 
+    ? 'http://localhost:8000'  // Desenvolvimento local
+    : (import.meta?.env?.VITE_API_URL || 'https://seu-backend-url.com');  // Produção
 
-// Para produção, altere para:
-// const API_BASE_URL = 'https://seu-backend.pythonanywhere.com';
+// IMPORTANTE: Antes de publicar, configure a URL do backend em produção
+// Opção 1: Defina VITE_API_URL nas variáveis de ambiente do Netlify
+// Opção 2: Substitua 'https://seu-backend-url.com' pela URL real do seu backend
 
 // ============================================================================
 // FUNÇÕES AUXILIARES
