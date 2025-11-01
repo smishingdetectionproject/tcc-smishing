@@ -1,19 +1,34 @@
+# Configuração do Netlify para o Detector de Smishing (Site Estático)
+
 [build]
-  command = "pnpm install --no-frozen-lockfile && pnpm run build"
-  publish = "dist/public"
+  # Não execute nenhum comando de build (desativa o Vite/React)
+  command = ""
+  
+  # Publique a pasta que contém seus arquivos HTML, CSS e JS
+  # Assumindo que seus arquivos HTML estão na pasta 'client/public'
+  publish = "client/public"
+  
+  # Diretório base do projeto
   base = "."
 
-# Configuração para o roteamento SPA (Single Page Application)
+# Configuração para o roteamento (necessário para que as páginas internas funcionem)
+[[redirects]]
+  from = "/detector.html"
+  to = "/detector.html"
+  status = 200
+
+[[redirects]]
+  from = "/contato.html"
+  to = "/contato.html"
+  status = 200
+
+[[redirects]]
+  from = "/sobre.html"
+  to = "/sobre.html"
+  status = 200
+
+# Redireciona todas as outras rotas para o index.html
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Configuração de Node.js
-[build.environment]
-  NODE_VERSION = "22"
-  NPM_FLAGS = "--legacy-peer-deps"
-
-# FORÇA A VARIÁVEL DE AMBIENTE NO BUILD DE PRODUÇÃO
-[context.production.environment]
-  VITE_API_URL = "https://detector-smishing-backend.onrender.com"
