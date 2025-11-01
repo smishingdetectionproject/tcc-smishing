@@ -12,6 +12,7 @@ Data: 2025
 import os
 import csv
 import json
+import requests # Adicionado para comunicação com a API do GitHub
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -56,6 +57,11 @@ DATA_DIR = BACKEND_DIR / "data"
 # Criar diretórios se não existirem
 MODEL_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
+
+# Configurações do GitHub Gist para persistência do feedback
+GIST_ID = "49f7cfb15be23bb0add2a3ddc4ef343a" # ID fornecido pelo usuário
+GIST_FILENAME = "feedback.csv"
+GIST_API_URL = f"https://api.github.com/gists/{GIST_ID}"
 
 # Carregar o vetorizador TF-IDF
 try:
@@ -128,7 +134,7 @@ class FeedbackRequest(BaseModel):
     mensagem: str
     veredito_original: str
     feedback_util: bool
-    feedback_usuario: Optional[str] = None
+    comentario_usuario: Optional[str] = None # Alterado para 'comentario_usuario'
 
 
 class FeedbackResponse(BaseModel):
@@ -190,14 +196,35 @@ def extrair_caracteristicas_smishing(mensagem: str) -> list[CaracteristicaDetect
             confianca=0.80
         ))
     
-    # Padrão 4: Links ou números suspeitos
-    if "http" in mensagem_lower or "www" in mensagem_lower or "bit.ly" in mensagem_lower:
-        caracteristicas.append(CaracteristicaDetectada(
-            nome="Presença de Links",
-            descricao="Contém links que podem levar a sites maliciosos.",
-            icone="🔗",
-            confianca=0.75
-        ))
+    # Padrão 4: Links ou números suspeitos (Heurística Aprimorada)
+    import re
+    # Regex para encontrar URLs
+    url_pattern = re.compile(r'https?://[^\s]+|www\.[^\s]+|\bbit\.ly\b|\btinyurl\.com\b', re.IGNORECASE)
+    links_encontrados = url_pattern.findall(mensagem)
+
+    if links_encontrados:
+        # Contar links HTTPS (mais seguros) e HTTP (menos seguros)
+        links_http = sum(1 for link in links_encontrados if link.startswith("http://"))
+        links_https = sum(1 for link in links_encontrados if link.startswith("https://"))
+        
+        # Focar em links HTTP ou encurtadores (bit.ly, tinyurl)
+        tem_link_suspeito = links_http > 0 or any(re.search(r'\bbit\.ly\b|\btinyurl\.com\b', link, re.IGNORECASE) for link in links_encontrados)
+        
+        if tem_link_suspeito:
+            caracteristicas.append(CaracteristicaDetectada(
+                nome="Presença de Links Suspeitos",
+                descricao="Contém links que usam HTTP (não seguro) ou encurtadores (comuns em golpes).",
+                icone="🔗",
+                confianca=0.99
+            ))
+        elif links_https > 0:
+            # Se for apenas HTTPS, ainda é um alerta, mas com confiança menor
+            caracteristicas.append(CaracteristicaDetectada(
+                nome="Presença de Links",
+                descricao="Contém links (HTTPS) que podem ser legítimos, mas exigem cautela.",
+                icone="🔗",
+                confianca=0.75
+            ))
     
     # Padrão 5: Erros gramaticais e ortográficos
     erros = mensagem.count(" ") - len(mensagem.split())  # Heurística simples
@@ -260,8 +287,7 @@ def analisar_com_modelo(mensagem: str, modelo_nome: str = "random_forest") -> tu
     probabilidades = modelo.predict_proba(X)[0]
     
     # Mapear predição para veredito
-    # CORREÇÃO APLICADA AQUI: 
-    # 1 é Smishing, 0 é Legítima (conforme o treinamento do modelo)
+    # CORREÇÃO: 1 é Smishing, 0 é Legítima (conforme notebook de treinamento)
     veredito = "Smishing" if predicao == 1 else "Legítima"
     confianca = max(probabilidades)
     
@@ -314,24 +340,47 @@ async def analisar_mensagem(request: AnaliseRequest):
             detail="Mensagem não pode estar vazia"
         )
     
-    if len(request.mensagem) > 500:
-        raise HTTPException(
-            status_code=400,
-            detail="Mensagem muito longa (máximo 500 caracteres)"
-        )
+    # 1. Análise do Modelo de ML
+    veredito, confianca = analisar_com_modelo(request.mensagem, request.modelo)
+    modelo_usado = request.modelo
     
-    try:
-        # Analisar com modelo
-        veredito, confianca = analisar_com_modelo(request.mensagem, request.modelo)
-        
-        # Extrair características heurísticas
-        caracteristicas = extrair_caracteristicas_smishing(request.mensagem)
-        
-        # Gerar explicação
+    # 2. Extração de Características Heurísticas
+    caracteristicas = extrair_caracteristicas_smishing(request.mensagem)
+    
+    # 3. Regra de SOBREPOSIÇÃO (OVERRIDE) para casos críticos:
+    # Se o modelo classificou como Legítima, mas há uma combinação crítica de características heurísticas,
+    # forçar a classificação para Smishing.
+    
+    tem_urgencia = any(c.nome == "Senso de Urgência" for c in caracteristicas)
+    tem_dados_pessoais = any(c.nome == "Pedido de Dados Pessoais" for c in caracteristicas)
+    tem_links = any(c.nome == "Presença de Links Suspeitos" for c in caracteristicas) # Alterado para Suspeitos
+    
+    # Condição de override: (Urgência + Dados Pessoais) OU (Presença de Links Suspeitos)
+    if veredito == "Legítima" and ( (tem_urgencia and tem_dados_pessoais) or tem_links ):
+        veredito = "Smishing"
+        # Aumentar a confiança para refletir a certeza da regra de segurança
+        confianca = max(confianca, 0.99) 
+        explicacao = (
+            "Esta mensagem foi classificada como **Smishing** por uma regra de segurança crítica. "
+            "O modelo de ML a considerou legítima, mas a combinação de **Senso de Urgência** e "
+            "**Pedido de Dados Pessoais** OU a **Presença de Links Suspeitos** são indicadores fortíssimos de golpe. "
+            "Recomendamos extrema cautela."
+        )
+    else:
+        # Gerar explicação baseada no veredito do modelo (ou do override)
         if veredito == "Smishing":
-            explicacao = "Esta mensagem foi classificada como **Smishing**. Recomendamos extrema cautela. Não clique em links, não forneça dados pessoais e entre em contato diretamente com a suposta instituição por canais oficiais."
+            explicacao = (
+                "Esta mensagem foi classificada como uma potencial tentativa de "
+                "smishing (phishing por SMS). Ela apresenta características comuns "
+                "em mensagens fraudulentas. Não clique em links, não compartilhe "
+                "dados pessoais e não realize transferências solicitadas."
+            )
         else:
-            explicacao = "Esta mensagem foi classificada como legítima. No entanto, sempre mantenha a cautela com mensagens não esperadas. Se tiver dúvidas, entre em contato diretamente com a instituição."
+            explicacao = (
+                "Esta mensagem foi classificada como legítima. No entanto, sempre "
+                "mantenha a cautela com mensagens não esperadas. Se tiver dúvidas, "
+                "entre em contato diretamente com a instituição."
+            )
         
         # Se for legítima, mas tiver características suspeitas, adicionar um alerta
         if veredito == "Legítima" and len(caracteristicas) > 0:
@@ -341,77 +390,114 @@ async def analisar_mensagem(request: AnaliseRequest):
         if veredito == "Smishing" and confianca < 0.7:
             explicacao += " **NOTA:** A confiança do modelo nesta classificação é baixa. Considere a análise das características detectadas."
             
-        # Retornar resposta
-        return AnaliseResponse(
-            veredito=veredito,
-            confianca=round(confianca * 100, 2),
-            caracteristicas=caracteristicas,
-            explicacao=explicacao,
-            modelo_usado=request.modelo
-        )
+    return AnaliseResponse(
+        veredito=veredito,
+        confianca=confianca,
+        caracteristicas=caracteristicas,
+        explicacao=explicacao,
+        modelo_usado=modelo_usado
+    )
+
+
+def get_gist_content() -> str:
+    """Busca o conteúdo atual do Gist."""
+    headers = {
+        "Authorization": f"token {os.environ.get('GITHUB_PAT')}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    
+    try:
+        response = requests.get(GIST_API_URL, headers=headers)
+        response.raise_for_status()
         
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        print(f"Erro inesperado na análise: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro interno do servidor: {e}"
-        )
+        gist_data = response.json()
+        
+        if GIST_FILENAME in gist_data["files"]:
+            return gist_data["files"][GIST_FILENAME]["content"]
+        else:
+            # Se o arquivo não existir no Gist, retorna apenas o cabeçalho
+            return "timestamp,mensagem,veredito_original,feedback_util,comentario_usuario\n"
+            
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar Gist: {e}")
+        # Em caso de erro, retorna apenas o cabeçalho para evitar perda de dados
+        return "timestamp,mensagem,veredito_original,feedback_util,comentario_usuario\n"
+
+
+def update_gist_content(new_content: str) -> bool:
+    """Atualiza o conteúdo do Gist."""
+    headers = {
+        "Authorization": f"token {os.environ.get('GITHUB_PAT')}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    
+    data = {
+        "files": {
+            GIST_FILENAME: {
+                "content": new_content
+            }
+        }
+    }
+    
+    try:
+        response = requests.patch(GIST_API_URL, headers=headers, json=data)
+        response.raise_for_status()
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao atualizar Gist: {e}")
+        return False
 
 
 @app.post("/feedback", response_model=FeedbackResponse)
-async def registrar_feedback(request: FeedbackRequest):
+async def receber_feedback(request: FeedbackRequest):
     """
-    Registra o feedback do usuário sobre a análise.
+    Recebe feedback do usuário e salva no GitHub Gist.
     
     Args:
-        request: Objeto contendo a mensagem, veredito original e feedback
+        request: Objeto contendo o feedback do usuário
         
     Returns:
         Resposta de sucesso
     """
-    try:
-        # Caminho para o arquivo de log de feedback
-        feedback_file = DATA_DIR / "feedback_log.csv"
-        
-        # Preparar dados para o log
-        log_data = {
-            "timestamp": datetime.now().isoformat(),
-            "mensagem": request.mensagem,
-            "veredito_original": request.veredito_original,
-            "feedback_util": request.feedback_util,
-            "feedback_usuario": request.feedback_usuario if request.feedback_usuario else ""
-        }
-        
-        # Verificar se o arquivo existe para escrever o cabeçalho
-        file_exists = os.path.exists(feedback_file)
-        
-        with open(feedback_file, 'a', newline='', encoding='utf-8') as csvfile:
-            fieldnames = log_data.keys()
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            
-            if not file_exists:
-                writer.writeheader()  # Escreve o cabeçalho apenas se o arquivo for novo
-            
-            writer.writerow(log_data)
-            
+    # 1. Obter o conteúdo atual do Gist
+    current_content = get_gist_content()
+    
+    # 2. Formatar o novo feedback
+    novo_feedback = {
+        'timestamp': datetime.now().isoformat(),
+        'mensagem': request.mensagem.replace('\n', ' ').replace('\r', ''), # Remover quebras de linha para CSV
+        'veredito_original': request.veredito_original,
+        'feedback_util': request.feedback_util,
+        'comentario_usuario': request.comentario_usuario.replace('\n', ' ').replace('\r', '') if request.comentario_usuario else ''
+    }
+    
+    # Converter o novo feedback para a linha CSV
+    fieldnames = ['timestamp', 'mensagem', 'veredito_original', 'feedback_util', 'comentario_usuario']
+    
+    # Usar StringIO para simular a escrita CSV e obter a linha
+    import io
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+    writer.writerow(novo_feedback)
+    nova_linha_csv = output.getvalue().strip()
+    
+    # 3. Anexar a nova linha ao conteúdo
+    # Se o conteúdo atual for apenas o cabeçalho, a nova linha já tem o cabeçalho.
+    # Se não for, removemos o cabeçalho da nova linha (que o DictWriter adiciona)
+    if current_content.endswith('\n'):
+        novo_conteudo = current_content + nova_linha_csv
+    else:
+        # Se o arquivo não terminar com \n, adicionamos um e a nova linha
+        novo_conteudo = current_content + '\n' + nova_linha_csv
+    
+    # 4. Atualizar o Gist
+    if update_gist_content(novo_conteudo):
         return FeedbackResponse(
             sucesso=True,
-            mensagem="Feedback registrado com sucesso!"
+            mensagem="Feedback recebido com sucesso e salvo no GitHub Gist. Obrigado por ajudar a melhorar o modelo!"
         )
-        
-    except Exception as e:
-        print(f"Erro ao registrar feedback: {e}")
+    else:
         raise HTTPException(
             status_code=500,
-            detail=f"Erro interno ao registrar feedback: {e}"
+            detail="Erro ao salvar feedback no GitHub Gist. Verifique o GIST_ID e o GITHUB_PAT."
         )
-
-# ============================================================================
-# EXECUÇÃO LOCAL (opcional)
-# ============================================================================
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
