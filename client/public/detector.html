@@ -207,6 +207,32 @@
                                     <small class="text-muted d-block mt-3">
                                         Seu feedback nos ajuda a melhorar o modelo
                                     </small>
+                                    
+                                    <!-- Campo de Comentário Opcional -->
+                                    <div id="comentarioFeedbackContainer" class="mt-4" style="display: none;">
+                                        <label for="comentarioFeedback" class="form-label fw-bold">
+                                            Comentário (Opcional)
+                                        </label>
+                                        <textarea 
+                                            class="form-control" 
+                                            id="comentarioFeedback" 
+                                            rows="3" 
+                                            placeholder="Explique por que a análise foi útil ou não, para ajudar no treinamento do modelo."
+                                        ></textarea>
+                                        <small class="text-muted d-block mt-2">
+                                            Seu comentário é anônimo e essencial para aprimorar a inteligência artificial.
+                                        </small>
+                                    </div>
+                                    
+                                    <!-- Botão de Envio de Feedback -->
+                                    <button 
+                                        class="btn btn-success mt-3" 
+                                        id="enviarFeedbackBtn" 
+                                        style="display: none;"
+                                    >
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        Enviar Feedback
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -230,7 +256,7 @@
                                 <i class="fas fa-lightbulb me-2 text-warning"></i>
                                 Dicas de Segurança
                             </h5>
-                            <ul class="list-unstyled">
+                            <ul class="list-unstyled small">
                                 <li class="mb-2">
                                     <i class="fas fa-check-circle text-success me-2"></i>
                                     <strong>Desconfie de mensagens urgentes:</strong> Criminosos usam pressão de tempo

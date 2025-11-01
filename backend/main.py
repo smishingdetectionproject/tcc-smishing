@@ -174,15 +174,23 @@ def extrair_caracteristicas_smishing(mensagem: str) -> list[CaracteristicaDetect
             confianca=0.85
         ))
     
-    # Padrão 2: Pedido de dados pessoais
-    palavras_dados = ["senha", "pin", "código", "cpf", "dados bancários", 
-                      "cartão", "número da conta", "confirmar dados", "verificar conta"]
-    if any(palavra in mensagem_lower for palavra in palavras_dados):
+    # Padrão 2: Pedido de dados pessoais (Expandido)
+    palavras_dados = ["senha", "pin", "código", "dados bancários", "confirmar dados", "verificar conta"]
+    
+    # Regex para documentos e cartões
+    # CPF (XXX.XXX.XXX-XX ou XXXXXXXXXXX)
+    # RG (XX.XXX.XXX-X ou XXXXXXXXXX)
+    # Cartão de Crédito (XXXX XXXX XXXX XXXX)
+    # Título de Eleitor (12 dígitos)
+    import re
+    regex_dados = r'\bcpf\b|\brg\b|\btítulo de eleitor\b|\bcartão de crédito\b|\bcartão de débito\b|\bcartão\b|\bcvv\b|\bdata de validade\b|\bvalidade do cartão\b'
+    
+    if any(palavra in mensagem_lower for palavra in palavras_dados) or re.search(regex_dados, mensagem_lower):
         caracteristicas.append(CaracteristicaDetectada(
-            nome="Pedido de Dados Pessoais",
-            descricao="Solicita informações sensíveis que você nunca deve compartilhar.",
+            nome="Pedido de Dados Pessoais/Documentos",
+            descricao="Solicita informações sensíveis (CPF, RG, Cartão, Senha) que você nunca deve compartilhar.",
             icone="🔐",
-            confianca=0.95
+            confianca=0.99
         ))
     
     # Padrão 3: Pedido de dinheiro ou transferência
@@ -197,7 +205,6 @@ def extrair_caracteristicas_smishing(mensagem: str) -> list[CaracteristicaDetect
         ))
     
     # Padrão 4: Links ou números suspeitos (Heurística Aprimorada)
-    import re
     # Regex para encontrar URLs
     url_pattern = re.compile(r'https?://[^\s]+|www\.[^\s]+|\bbit\.ly\b|\btinyurl\.com\b', re.IGNORECASE)
     links_encontrados = url_pattern.findall(mensagem)
@@ -239,7 +246,6 @@ def extrair_caracteristicas_smishing(mensagem: str) -> list[CaracteristicaDetect
         ))
     
     # Padrão 6: Números de telefone ou contas
-    import re
     if re.search(r'\d{8,}', mensagem):  # Sequência de 8+ dígitos
         caracteristicas.append(CaracteristicaDetectada(
             nome="Números Suspeitos",
@@ -352,8 +358,8 @@ async def analisar_mensagem(request: AnaliseRequest):
     # forçar a classificação para Smishing.
     
     tem_urgencia = any(c.nome == "Senso de Urgência" for c in caracteristicas)
-    tem_dados_pessoais = any(c.nome == "Pedido de Dados Pessoais" for c in caracteristicas)
-    tem_links = any(c.nome == "Presença de Links Suspeitos" for c in caracteristicas) # Alterado para Suspeitos
+    tem_dados_pessoais = any(c.nome == "Pedido de Dados Pessoais/Documentos" for c in caracteristicas)
+    tem_links = any(c.nome == "Presença de Links Suspeitos" for c in caracteristicas)
     
     # Condição de override: (Urgência + Dados Pessoais) OU (Presença de Links Suspeitos)
     if veredito == "Legítima" and ( (tem_urgencia and tem_dados_pessoais) or tem_links ):
@@ -361,17 +367,17 @@ async def analisar_mensagem(request: AnaliseRequest):
         # Aumentar a confiança para refletir a certeza da regra de segurança
         confianca = max(confianca, 0.99) 
         explicacao = (
-            "Esta mensagem foi classificada como **Smishing** por uma regra de segurança crítica. "
+            "Esta mensagem foi classificada como uma **possível tentativa de smishing** por uma regra de segurança crítica. "
             "O modelo de ML a considerou legítima, mas a combinação de **Senso de Urgência** e "
-            "**Pedido de Dados Pessoais** OU a **Presença de Links Suspeitos** são indicadores fortíssimos de golpe. "
+            "**Pedido de Dados Pessoais/Documentos** OU a **Presença de Links Suspeitos** são indicadores fortíssimos de golpe. "
             "Recomendamos extrema cautela."
         )
     else:
         # Gerar explicação baseada no veredito do modelo (ou do override)
         if veredito == "Smishing":
             explicacao = (
-                "Esta mensagem foi classificada como uma potencial tentativa de "
-                "smishing (phishing por SMS). Ela apresenta características comuns "
+                "Esta mensagem foi classificada como uma **possível tentativa de smishing** "
+                "(phishing por SMS). Ela apresenta características comuns "
                 "em mensagens fraudulentas. Não clique em links, não compartilhe "
                 "dados pessoais e não realize transferências solicitadas."
             )

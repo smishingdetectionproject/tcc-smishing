@@ -11,319 +11,191 @@
 // VARIÁVEIS GLOBAIS
 // ============================================================================
 
-let ultimaAnalise = null;
-let feedbackRegistrado = false;
+let ultimaMensagem = "";
+let ultimoVereditoOriginal = "";
 
-// ============================================================================
-// INICIALIZAÇÃO
-// ============================================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Elementos do formulário
-    const formularioAnalise = document.getElementById('formularioAnalise');
-    const mensagemInput = document.getElementById('mensagemInput');
-    const botaoNovaAnalise = document.getElementById('botaoNovaAnalise');
-    
-    // Elementos de feedback
-    const feedbackSim = document.getElementById('feedbackSim');
-    const feedbackNao = document.getElementById('feedbackNao');
-    
-    // Event listeners
-    if (formularioAnalise) {
-        // O event listener para o formulário está aqui
-        formularioAnalise.addEventListener('submit', analisarMensagem);
-    }
-    
-    if (botaoNovaAnalise) {
-        botaoNovaAnalise.addEventListener('click', novaAnalise);
-    }
-    
-    if (mensagemInput) {
-        mensagemInput.addEventListener('input', atualizarContador);
-    }
-    
-    if (feedbackSim) {
-        feedbackSim.addEventListener('click', function() {
-            registrarFeedback(true);
-        });
-    }
-    
-    if (feedbackNao) {
-        feedbackNao.addEventListener('click', function() {
-            registrarFeedback(false);
-        });
-    }
-    
-    // Inicializar contador
-    // Removido a chamada desnecessária de atualizarContador() aqui,
-    // pois o valor inicial é 0/500 e a função só deve ser chamada
-    // no evento 'input' ou 'novaAnalise'.
-    // O contador já é 0/500 no HTML, e a função novaAnalise() cuida
-    // de focar e atualizar se necessário.
-});
-
-// ============================================================================
-// FUNÇÕES PRINCIPAIS
-// ============================================================================
-
-/**
- * Atualiza o contador de caracteres
- */
-function atualizarContador() {
-    const mensagemInput = document.getElementById('mensagemInput');
-    const contadorCaracteres = document.getElementById('contadorCaracteres');
-    
-    if (mensagemInput && contadorCaracteres) {
-        contadorCaracteres.textContent = mensagemInput.value.length;
-    }
+// Função para formatar a explicação (substituindo **texto** por <strong>texto</strong>)
+function formatarExplicacao(texto) {
+    // Substitui **texto** por <strong>texto</strong>
+    return texto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
 
-/**
- * Analisa a mensagem
- */
-async function analisarMensagem(evento) {
-    evento.preventDefault();
-    
-    const mensagemInput = document.getElementById('mensagemInput');
-    const modeloSelect = document.getElementById('modeloSelect');
-    const botaoAnalisar = document.getElementById('botaoAnalisar');
-    const carregando = document.getElementById('carregando');
-    const resultadoContainer = document.getElementById('resultadoContainer');
-    
-    // Validar entrada
-    if (!mensagemInput.value.trim()) {
-        mostrarNotificacao('Por favor, insira uma mensagem', 'warning');
-        return;
-    }
-    
-    // Desabilitar botão e mostrar carregamento
-    botaoAnalisar.disabled = true;
-    carregando.style.display = 'block';
-    resultadoContainer.style.display = 'none';
-    feedbackRegistrado = false;
-    
-    try {
-        // Fazer requisição para a API (usando função global de main.js)
-        const resposta = await fazerRequisicaoAPI('/analisar', 'POST', {
-            mensagem: mensagemInput.value.trim(),
-            modelo: modeloSelect.value
-        });
-        
-        // Armazenar resultado
-        ultimaAnalise = resposta;
-        
-        // Exibir resultado
-        exibirResultado(resposta);
-        resultadoContainer.style.display = 'block';
-        
-        // Scroll para resultado
-        resultadoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
-    } catch (erro) {
-        console.error('Erro ao analisar:', erro);
-        // Usando função global de main.js
-        mostrarNotificacao(`Erro ao analisar a mensagem. Detalhe: ${erro.message}`, 'danger');
-    } finally {
-        // Reabilitar botão e esconder carregamento
-        botaoAnalisar.disabled = false;
-        carregando.style.display = 'none';
-    }
-}
+// Função para exibir o resultado da análise
+function exibirResultado(data) {
+    // Armazenar para o feedback
+    ultimaMensagem = data.mensagem;
+    ultimoVereditoOriginal = data.veredito;
 
-/**
- * Exibe o resultado da análise
- */
-function exibirResultado(resultado) {
-    const resultadoCard = document.getElementById('resultadoCard');
-    const veredito = document.getElementById('veredito');
-    const barraConfianca = document.getElementById('barraConfianca');
-    const textoConfianca = document.getElementById('textoConfianca');
-    const explicacao = document.getElementById('explicacao');
-    const caracteristicasContainer = document.getElementById('caracteristicasContainer');
-    const explicacaoContainer = document.getElementById('explicacaoContainer');
-    
-    // Determinar classe CSS baseado no veredito
-    const isSmishing = resultado.veredito === 'Smishing';
-    const classe = isSmishing ? 'smishing' : 'legitima';
-    
-    // Atualizar classe do card
-    resultadoCard.className = `card border-0 shadow-lg mb-5 resultado-card ${classe}`;
-    
-    // Atualizar veredito
-    const icone = isSmishing ? '⚠️' : '✅';
-    veredito.textContent = `${icone} ${resultado.veredito}`;
-    veredito.className = `resultado-veredito ${classe} mb-3`;
-    
-    // Atualizar barra de confiança
-    const confiancaPercentual = Math.round(resultado.confianca * 100);
-    barraConfianca.style.width = confiancaPercentual + '%';
-    barraConfianca.className = `progress-bar ${isSmishing ? 'bg-danger' : 'bg-success'}`;
-    textoConfianca.textContent = confiancaPercentual + '%';
-    
-    // Atualizar explicação
-    explicacao.textContent = resultado.explicacao;
-    explicacaoContainer.className = `alert ${isSmishing ? 'alert-danger' : 'alert-success'} mb-4`;
-    
-    // Atualizar características
-    caracteristicasContainer.innerHTML = '';
-    
-    if (resultado.caracteristicas && resultado.caracteristicas.length > 0) {
-        resultado.caracteristicas.forEach(caracteristica => {
-            const elemento = document.createElement('div');
-            elemento.className = 'caracteristica-item';
-            elemento.innerHTML = `
-                <div class="caracteristica-icone">${sanitizarTexto(caracteristica.icone)}</div>
-                <div class="caracteristica-conteudo">
-                    <h6>${sanitizarTexto(caracteristica.nome)}</h6>
-                    <p>${sanitizarTexto(caracteristica.descricao)}</p>
-                    <small class="text-muted">
-                        Confiança: ${Math.round(caracteristica.confianca * 100)}%
-                    </small>
+    // Elementos de resultado
+    const resultadoDiv = document.getElementById('resultado-analise');
+    const vereditoTitulo = document.getElementById('veredito-titulo');
+    const barraConfianca = document.getElementById('barra-confianca');
+    const explicacaoTexto = document.getElementById('explicacao-texto');
+    const caracteristicasLista = document.getElementById('caracteristicas-lista');
+    const feedbackSection = document.getElementById('feedback-section');
+
+    // 1. Veredito e Confiança
+    const isSmishing = data.veredito.includes("Smishing");
+    const cor = isSmishing ? 'danger' : 'success';
+    const confiancaPercentual = (data.confianca * 100).toFixed(2);
+
+    vereditoTitulo.innerHTML = `<span class="text-${cor}">${data.veredito}</span>`;
+    barraConfianca.innerHTML = `
+        <div class="progress-bar bg-${cor}" role="progressbar" style="width: ${confiancaPercentual}%;" aria-valuenow="${confiancaPercentual}" aria-valuemin="0" aria-valuemax="100">
+            ${confiancaPercentual}%
+        </div>
+    `;
+
+    // 2. Explicação (com correção de Markdown)
+    explicacaoTexto.innerHTML = `
+        <div class="alert alert-${isSmishing ? 'danger' : 'success'} mt-3" role="alert">
+            <i class="bi bi-info-circle-fill"></i> ${formatarExplicacao(data.explicacao)}
+        </div>
+    `;
+
+    // 3. Características Detectadas
+    caracteristicasLista.innerHTML = '';
+    if (data.caracteristicas.length > 0) {
+        data.caracteristicas.forEach(caracteristica => {
+            const item = document.createElement('div');
+            item.className = 'card mb-3 shadow-sm';
+            item.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-lightbulb-fill me-2"></i> ${caracteristica.nome}</h5>
+                    <p class="card-text">${caracteristica.descricao}</p>
+                    <small class="text-muted">Confiança: ${(caracteristica.confianca * 100).toFixed(0)}%</small>
                 </div>
             `;
-            caracteristicasContainer.appendChild(elemento);
+            caracteristicasLista.appendChild(item);
         });
     } else {
-        caracteristicasContainer.innerHTML = `
-            <p class="text-muted">Nenhuma característica suspeita detectada.</p>
-        `;
+        caracteristicasLista.innerHTML = '<p class="text-muted">Nenhuma característica suspeita detectada.</p>';
     }
-    
-    // Resetar feedback
-    resetarFeedback();
+
+    // 4. Exibir a seção de resultado e feedback
+    resultadoDiv.classList.remove('d-none');
+    feedbackSection.classList.remove('d-none');
+    document.getElementById('feedback-form').classList.add('d-none'); // Esconder o formulário de feedback inicialmente
 }
 
-/**
- * Registra o feedback do usuário
- */
-async function registrarFeedback(util) {
-    if (!ultimaAnalise || feedbackRegistrado) {
+// Função para analisar a mensagem
+async function analisarMensagem() {
+    const mensagem = document.getElementById('mensagem-sms').value;
+    const modelo = document.getElementById('modelo-ia').value;
+    const btnAnalise = document.getElementById('btn-analisar');
+    const loadingSpinner = document.getElementById('loading-spinner');
+
+    if (mensagem.length < 10) {
+        alert("Por favor, insira uma mensagem com pelo menos 10 caracteres.");
         return;
     }
-    
-    const feedbackSim = document.getElementById('feedbackSim');
-    const feedbackNao = document.getElementById('feedbackNao');
-    
+
+    // Desabilitar botão e mostrar loading
+    btnAnalise.disabled = true;
+    btnAnalise.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analisando...';
+    loadingSpinner.classList.remove('d-none');
+    document.getElementById('resultado-analise').classList.add('d-none');
+    document.getElementById('feedback-section').classList.add('d-none');
+    document.getElementById('feedback-form').classList.add('d-none'); // Esconder o formulário de feedback
+
     try {
-        // Fazer requisição para registrar feedback (usando função global de main.js)
-        await fazerRequisicaoAPI('/feedback', 'POST', {
-            mensagem: document.getElementById('mensagemInput').value.trim(),
-            veredito_original: ultimaAnalise.veredito,
-            feedback_util: util,
-            feedback_usuario: null
+        const response = await fetch('https://seu-backend-render.onrender.com/analisar', { // ATUALIZE ESTA URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mensagem: mensagem, modelo: modelo })
         });
-        
-        // Atualizar estado dos botões
-        feedbackRegistrado = true;
-        feedbackSim.classList.remove('active');
-        feedbackNao.classList.remove('active');
-        
-        if (util) {
-            feedbackSim.classList.add('active');
+
+        const data = await response.json();
+
+        if (response.ok) {
+            exibirResultado(data);
         } else {
-            feedbackNao.classList.add('active');
+            alert(`Erro na análise: ${data.detail}`);
         }
-        
-        // Usando função global de main.js
-        mostrarNotificacao('Obrigado pelo seu feedback!', 'success');
-        
-    } catch (erro) {
-        console.error('Erro ao registrar feedback:', erro);
-        // Usando função global de main.js
-        mostrarNotificacao(`Erro ao registrar feedback. Detalhe: ${erro.message}`, 'danger');
+
+    } catch (error) {
+        console.error('Erro ao conectar com a API:', error);
+        alert('Erro ao conectar com o servidor de análise. Verifique a URL da API.');
+    } finally {
+        // Reabilitar botão e esconder loading
+        btnAnalise.disabled = false;
+        btnAnalise.innerHTML = 'Analisar Mensagem';
+        loadingSpinner.classList.add('d-none');
     }
 }
 
-/**
- * Reseta os botões de feedback
- */
-function resetarFeedback() {
-    const feedbackSim = document.getElementById('feedbackSim');
-    const feedbackNao = document.getElementById('feedbackNao');
+// Função para exibir o formulário de feedback
+function exibirFormularioFeedback(util) {
+    const feedbackForm = document.getElementById('feedback-form');
+    const feedbackUtilInput = document.getElementById('feedback-util-input');
+    const feedbackMessage = document.getElementById('feedback-message');
     
-    if (feedbackSim) feedbackSim.classList.remove('active');
-    if (feedbackNao) feedbackNao.classList.remove('active');
-    
-    feedbackRegistrado = false;
+    // Esconder botões Sim/Não
+    document.getElementById('feedback-buttons').classList.add('d-none');
+
+    // Preencher o campo hidden com o valor booleano
+    feedbackUtilInput.value = util;
+
+    // Ajustar a mensagem de conscientização
+    if (util === 'true') {
+        feedbackMessage.innerHTML = 'Obrigado! Seu feedback positivo reforça o aprendizado do modelo. Se desejar, adicione um comentário para nos ajudar a entender o que funcionou bem.';
+    } else {
+        feedbackMessage.innerHTML = 'Seu feedback negativo é crucial! Por favor, adicione um comentário explicando por que a análise não foi útil. Isso nos ajuda a identificar e corrigir os erros do modelo.';
+    }
+
+    // Exibir o formulário
+    feedbackForm.classList.remove('d-none');
 }
 
-/**
- * Prepara para uma nova análise
- */
-function novaAnalise() {
-    const formularioAnalise = document.getElementById('formularioAnalise');
-    const mensagemInput = document.getElementById('mensagemInput');
-    const resultadoContainer = document.getElementById('resultadoContainer');
-    
-    // Limpar formulário
-    if (formularioAnalise) {
-        formularioAnalise.reset();
-    }
-    
-    // Atualizar contador
-    if (mensagemInput) {
-        mensagemInput.focus();
-        atualizarContador();
-    }
-    
-    // Esconder resultado
-    resultadoContainer.style.display = 'none';
-    
-    // Scroll para o formulário
-    formularioAnalise.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+// Função para enviar o feedback
+async function enviarFeedback() {
+    const feedbackUtil = document.getElementById('feedback-util-input').value;
+    const comentario = document.getElementById('comentario-feedback').value;
+    const btnEnviar = document.getElementById('btn-enviar-feedback');
 
-// ============================================================================
-// EXEMPLOS DE TESTE
-// ============================================================================
+    // Desabilitar botão
+    btnEnviar.disabled = true;
+    btnEnviar.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...';
 
-/**
- * Carrega um exemplo de mensagem de smishing
- */
-function carregarExemploSmishing() {
-    const exemplos = [
-        'Clique aqui para confirmar sua conta: http://bit.ly/123abc',
-        'URGENTE: Sua conta foi bloqueada. Confirme seus dados: http://banco.fake.com',
-        'Transferência de R$ 1000 pendente. Clique para confirmar: http://link.suspeito.com',
-        'Seu CPF foi comprometido. Envie seu número de cartão para verificação.',
-        'Parabéns! Você ganhou um prêmio. Clique aqui para receber: http://premio.fake.com'
-    ];
-    
-    const exemplo = exemplos[Math.floor(Math.random() * exemplos.length)];
-    const mensagemInput = document.getElementById('mensagemInput');
-    
-    if (mensagemInput) {
-        mensagemInput.value = exemplo;
-        atualizarContador();
-    }
-}
+    try {
+        const response = await fetch('https://seu-backend-render.onrender.com/feedback', { // ATUALIZE ESTA URL
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                mensagem: ultimaMensagem,
+                veredito_original: ultimoVereditoOriginal,
+                feedback_util: feedbackUtil === 'true', // Converte a string de volta para booleano
+                comentario_usuario: comentario
+            })
+        });
 
-/**
- * Carrega um exemplo de mensagem legítima
- */
-function carregarExemploLegitima() {
-    const exemplos = [
-        'Seu pedido foi confirmado. Acompanhe em: www.loja.com.br/pedidos',
-        'Bem-vindo! Seu código de ativação é 123456',
-        'Sua compra foi aprovada. Obrigado por comprar conosco!',
-        'Lembrete: Sua consulta é amanhã às 14h. Confirme presença.',
-        'Seu extrato está disponível. Acesse seu banco normalmente.'
-    ];
-    
-    const exemplo = exemplos[Math.floor(Math.random() * exemplos.length)];
-    const mensagemInput = document.getElementById('mensagemInput');
-    
-    if (mensagemInput) {
-        mensagemInput.value = exemplo;
-        atualizarContador();
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Feedback enviado com sucesso! Obrigado por sua contribuição.");
+            // Esconder a seção de feedback após o envio
+            document.getElementById('feedback-section').classList.add('d-none');
+        } else {
+            alert(`Erro ao enviar feedback: ${data.detail}`);
+        }
+
+    } catch (error) {
+        console.error('Erro ao enviar feedback:', error);
+        alert('Erro ao conectar com o servidor de feedback. Verifique a URL da API.');
+    } finally {
+        // Reabilitar botão
+        btnEnviar.disabled = false;
+        btnEnviar.innerHTML = 'Enviar Feedback';
     }
 }
 
-// Expor funções para uso externo
-window.Detector = {
-    carregarExemploSmishing,
-    carregarExemploLegitima
-};
-
-console.log('%cDetector de Smishing Carregado', 'font-size: 14px; font-weight: bold; color: #003366;');
-console.log('%cNota: As funções de comunicação são fornecidas pelo main.js.', 'color: #999; font-style: italic;');
+// Adicionar listeners aos botões de feedback
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-sim-util').addEventListener('click', () => exibirFormularioFeedback('true'));
+    document.getElementById('btn-nao-util').addEventListener('click', () => exibirFormularioFeedback('false'));
+    document.getElementById('btn-enviar-feedback').addEventListener('click', enviarFeedback);
+});
