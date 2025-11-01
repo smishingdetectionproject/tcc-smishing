@@ -2,6 +2,9 @@
  * DETECTOR DE SMISHING - LÓGICA DA PÁGINA DETECTOR
  * 
  * Este arquivo contém a lógica para análise de mensagens SMS
+ * 
+ * **NOTA:** As funções globais `fazerRequisicaoAPI`, `mostrarNotificacao` e `sanitizarTexto`
+ * são assumidas como definidas no `main.js` e são usadas diretamente aqui.
  */
 
 // ============================================================================
@@ -19,13 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Elementos do formulário
     const formularioAnalise = document.getElementById('formularioAnalise');
     const mensagemInput = document.getElementById('mensagemInput');
-    const botaoAnalisar = document.getElementById('botaoAnalisar');
     const botaoNovaAnalise = document.getElementById('botaoNovaAnalise');
-    const contadorCaracteres = document.getElementById('contadorCaracteres');
-    
-    // Elementos de resultado
-    const resultadoContainer = document.getElementById('resultadoContainer');
-    const carregando = document.getElementById('carregando');
     
     // Elementos de feedback
     const feedbackSim = document.getElementById('feedbackSim');
@@ -55,6 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
             registrarFeedback(false);
         });
     }
+    
+    // Inicializar contador
+    atualizarContador();
 });
 
 // ============================================================================
@@ -98,7 +98,7 @@ async function analisarMensagem(evento) {
     feedbackRegistrado = false;
     
     try {
-        // Fazer requisição para a API
+        // Fazer requisição para a API (usando função global de main.js)
         const resposta = await fazerRequisicaoAPI('/analisar', 'POST', {
             mensagem: mensagemInput.value.trim(),
             modelo: modeloSelect.value
@@ -116,7 +116,8 @@ async function analisarMensagem(evento) {
         
     } catch (erro) {
         console.error('Erro ao analisar:', erro);
-        mostrarNotificacao('Erro ao analisar a mensagem. Tente novamente.', 'danger');
+        // Usando função global de main.js
+        mostrarNotificacao(`Erro ao analisar a mensagem. Detalhe: ${erro.message}`, 'danger');
     } finally {
         // Reabilitar botão e esconder carregamento
         botaoAnalisar.disabled = false;
@@ -166,7 +167,7 @@ function exibirResultado(resultado) {
             const elemento = document.createElement('div');
             elemento.className = 'caracteristica-item';
             elemento.innerHTML = `
-                <div class="caracteristica-icone">${caracteristica.icone}</div>
+                <div class="caracteristica-icone">${sanitizarTexto(caracteristica.icone)}</div>
                 <div class="caracteristica-conteudo">
                     <h6>${sanitizarTexto(caracteristica.nome)}</h6>
                     <p>${sanitizarTexto(caracteristica.descricao)}</p>
@@ -199,7 +200,7 @@ async function registrarFeedback(util) {
     const feedbackNao = document.getElementById('feedbackNao');
     
     try {
-        // Fazer requisição para registrar feedback
+        // Fazer requisição para registrar feedback (usando função global de main.js)
         await fazerRequisicaoAPI('/feedback', 'POST', {
             mensagem: document.getElementById('mensagemInput').value.trim(),
             veredito_original: ultimaAnalise.veredito,
@@ -218,11 +219,13 @@ async function registrarFeedback(util) {
             feedbackNao.classList.add('active');
         }
         
+        // Usando função global de main.js
         mostrarNotificacao('Obrigado pelo seu feedback!', 'success');
         
     } catch (erro) {
         console.error('Erro ao registrar feedback:', erro);
-        mostrarNotificacao('Erro ao registrar feedback', 'danger');
+        // Usando função global de main.js
+        mostrarNotificacao(`Erro ao registrar feedback. Detalhe: ${erro.message}`, 'danger');
     }
 }
 
@@ -316,3 +319,6 @@ window.Detector = {
     carregarExemploSmishing,
     carregarExemploLegitima
 };
+
+console.log('%cDetector de Smishing Carregado', 'font-size: 14px; font-weight: bold; color: #003366;');
+console.log('%cNota: As funções de comunicação são fornecidas pelo main.js.', 'color: #999; font-style: italic;');
