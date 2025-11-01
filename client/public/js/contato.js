@@ -107,7 +107,7 @@ async function enviarFormulario(evento) {
     
     // Validar campos obrigatórios
     if (!validarFormulario()) {
-        mostrarNotificacao('Por favor, preencha todos os campos obrigatórios', 'warning');
+        // A função validarFormulario já mostra a notificação
         return;
     }
     
@@ -115,25 +115,49 @@ async function enviarFormulario(evento) {
     botaoEnviar.disabled = true;
     carregandoFormulario.style.display = 'block';
     
+    // URL do Formspree (deve ser o mesmo do action no HTML)
+    const formspreeUrl = formularioContato.action;
+    
+    // Coletar dados do formulário
+    const dados = new FormData(formularioContato);
+    
     try {
-        // Submeter formulário
-        // O Formspree será acionado automaticamente pelo action do formulário
-        // Aguardar um pouco para permitir o envio
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Submeter formulário via Fetch API
+        const resposta = await fetch(formspreeUrl, {
+            method: 'POST',
+            body: dados,
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
         
-        // Mostrar mensagem de sucesso
-        mostrarNotificacao('Mensagem enviada com sucesso! Obrigado pelo contato.', 'success');
-        
-        // Limpar formulário
-        formularioContato.reset();
-        atualizarContadorMensagem();
-        
-        // Scroll para o topo
-        formularioContato.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (resposta.ok) {
+            // Sucesso
+            mostrarNotificacao('Mensagem enviada com sucesso! Obrigado pelo contato.', 'success');
+            
+            // Limpar formulário
+            formularioContato.reset();
+            atualizarContadorMensagem();
+            
+            // Scroll para o topo
+            formularioContato.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+        } else {
+            // Erro na resposta do Formspree
+            const data = await resposta.json();
+            if (Object.hasOwn(data, 'errors')) {
+                // Erros de validação do Formspree
+                mostrarNotificacao(`Erro de validação: ${data.errors.map(e => e.message).join(', ')}`, 'danger');
+            } else {
+                // Outros erros
+                mostrarNotificacao('Erro ao enviar mensagem. Tente novamente.', 'danger');
+            }
+            console.error('Erro ao enviar formulário:', resposta.status, data);
+        }
         
     } catch (erro) {
-        console.error('Erro ao enviar formulário:', erro);
-        mostrarNotificacao('Erro ao enviar mensagem. Tente novamente.', 'danger');
+        console.error('Erro de rede ao enviar formulário:', erro);
+        mostrarNotificacao('Erro de conexão. Verifique sua internet e tente novamente.', 'danger');
     } finally {
         // Reabilitar botão e esconder carregamento
         botaoEnviar.disabled = false;
@@ -193,6 +217,24 @@ function validarEmailRegex(email) {
 }
 
 // ============================================================================
+// FUNÇÕES AUXILIARES DE NOTIFICAÇÃO (MOCK)
+// ============================================================================
+
+/**
+ * Função de notificação (assumindo que existe no projeto)
+ * @param {string} mensagem 
+ * @param {string} tipo 
+ */
+function mostrarNotificacao(mensagem, tipo) {
+    console.log(`[NOTIFICAÇÃO ${tipo.toUpperCase()}]: ${mensagem}`);
+    // Implementação real dependeria de como as notificações são exibidas (ex: Toast, Alert)
+    // Para fins de correção do JS, o console.log é suficiente.
+    
+    // Se o usuário não tiver a função, ele pode adicionar um simples alert:
+    // alert(`${tipo.toUpperCase()}: ${mensagem}`);
+}
+
+// ============================================================================
 // INTEGRAÇÃO COM FORMSPREE
 // ============================================================================
 
@@ -210,4 +252,5 @@ function validarEmailRegex(email) {
  */
 
 console.log('%cFormulário de Contato Carregado', 'font-size: 14px; font-weight: bold; color: #003366;');
-console.log('%cNota: Configure o Formspree ID no atributo action do formulário', 'color: #999; font-style: italic;');
+console.log('%cNota: O script agora usa Fetch API para submissão assíncrona ao Formspree.', 'color: #999; font-style: italic;');
+console.log('%cCertifique-se de que a função `mostrarNotificacao` está definida globalmente.', 'color: #999; font-style: italic;');
