@@ -1,0 +1,21 @@
+[build]
+  # Publicar apenas o conteúdo estático (HTML, CSS, JS)
+  # Não precisa de build pois são arquivos estáticos
+  base = "client/public"
+  publish = "."
+  
+# Configuração para o roteamento SPA (Single Page Application)
+# Redireciona todas as rotas para index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de segurança e CORS
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"

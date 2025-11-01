@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Detector de Smishing - Analise mensagens SMS para detectar fraudes">
+    <title>Detector de Smishing - Análise de SMS</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Estilos customizados -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23003366'>🛡️</text></svg>">
+</head>
+<body>
+    <!-- Navegação -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom shadow-sm sticky-top">
+        <div class="container-lg">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="fas fa-shield-alt text-primary me-2"></i>
+                Detector de Smishing
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="detector.html">Detector</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="sobre.html">Sobre Nós</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contato.html">Contato</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section py-5" style="background: linear-gradient(135deg, #003366 0%, #004d99 100%);">
+        <div class="container-lg">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold text-white mb-3">
+                        Analise Sua Mensagem
+                    </h1>
+                    <p class="lead text-white-50 mb-0">
+                        Cole uma mensagem SMS suspeita e deixe nosso modelo analisar se é uma tentativa de smishing
+                    </p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="display-1 text-warning opacity-75">
+                        <i class="fas fa-magnifying-glass"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Principal -->
+    <section class="py-5">
+        <div class="container-lg">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <!-- Card de Análise -->
+                    <div class="card border-0 shadow-lg mb-5">
+                        <div class="card-body p-5">
+                            <h3 class="card-title fw-bold mb-4">
+                                <i class="fas fa-mobile-alt me-2 text-primary"></i>
+                                Insira a Mensagem
+                            </h3>
+                            
+                            <form id="formularioAnalise">
+                                <div class="mb-4">
+                                    <label for="mensagemInput" class="form-label fw-bold">
+                                        Mensagem SMS *
+                                    </label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="mensagemInput" 
+                                        rows="5" 
+                                        placeholder="Cole aqui a mensagem que deseja analisar..."
+                                        maxlength="500"
+                                        required
+                                    ></textarea>
+                                    <small class="text-muted d-block mt-2">
+                                        <span id="contadorCaracteres">0</span>/500 caracteres
+                                    </small>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="modeloSelect" class="form-label fw-bold">
+                                        Modelo de IA *
+                                    </label>
+                                    <select class="form-select" id="modeloSelect" required>
+                                        <option value="random_forest" selected>
+                                            Random Forest (F1-Score: 96.80% - Recomendado)
+                                        </option>
+                                        <option value="naive_bayes">
+                                            Complement Naive Bayes (F1-Score: 88.00%)
+                                        </option>
+                                    </select>
+                                    <small class="text-muted d-block mt-2">
+                                        O Random Forest é mais preciso. Naive Bayes é mais sensível a smishing.
+                                    </small>
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    class="btn btn-lg btn-warning w-100"
+                                    id="botaoAnalisar"
+                                >
+                                    <i class="fas fa-search me-2"></i>
+                                    Analisar Mensagem
+                                </button>
+                            </form>
+
+                            <!-- Indicador de Carregamento -->
+                            <div id="carregando" class="text-center mt-4" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Analisando...</span>
+                                </div>
+                                <p class="text-muted mt-3">Analisando sua mensagem...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resultado da Análise -->
+                    <div id="resultadoContainer" style="display: none;">
+                        <div id="resultadoCard" class="card border-0 shadow-lg mb-5">
+                            <div class="card-body p-5">
+                                <!-- Veredito -->
+                                <div class="text-center mb-5">
+                                    <div id="veredito" class="resultado-veredito mb-3">
+                                        <!-- Será preenchido dinamicamente -->
+                                    </div>
+                                    <div id="confiancaContainer" class="mb-4">
+                                        <p class="text-muted mb-2">Nível de Confiança:</p>
+                                        <div class="progress" style="height: 25px;">
+                                            <div 
+                                                id="barraConfianca" 
+                                                class="progress-bar" 
+                                                role="progressbar" 
+                                                style="width: 0%"
+                                            >
+                                                <span id="textoConfianca">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Explicação -->
+                                <div class="alert alert-info mb-4" id="explicacaoContainer">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <span id="explicacao"></span>
+                                </div>
+
+                                <!-- Características Detectadas -->
+                                <div class="mb-5">
+                                    <h5 class="fw-bold mb-3">
+                                        <i class="fas fa-list me-2 text-primary"></i>
+                                        Características Detectadas
+                                    </h5>
+                                    <div id="caracteristicasContainer">
+                                        <!-- Será preenchido dinamicamente -->
+                                    </div>
+                                </div>
+
+                                <!-- Feedback -->
+                                <div class="border-top pt-4">
+                                    <p class="fw-bold mb-3">
+                                        <i class="fas fa-thumbs-up me-2 text-success"></i>
+                                        Esta análise foi útil?
+                                    </p>
+                                    <div class="feedback-buttons">
+                                        <button 
+                                            class="feedback-btn" 
+                                            id="feedbackSim"
+                                            data-feedback="true"
+                                        >
+                                            <i class="fas fa-check me-2"></i>
+                                            Sim, foi útil
+                                        </button>
+                                        <button 
+                                            class="feedback-btn" 
+                                            id="feedbackNao"
+                                            data-feedback="false"
+                                        >
+                                            <i class="fas fa-times me-2"></i>
+                                            Não foi útil
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-3">
+                                        Seu feedback nos ajuda a melhorar o modelo
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botão para Nova Análise -->
+                        <div class="text-center">
+                            <button 
+                                class="btn btn-outline-primary btn-lg"
+                                id="botaoNovaAnalise"
+                            >
+                                <i class="fas fa-redo me-2"></i>
+                                Analisar Outra Mensagem
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dicas de Segurança -->
+                    <div class="card border-0 shadow-sm bg-light mt-5">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-3">
+                                <i class="fas fa-lightbulb me-2 text-warning"></i>
+                                Dicas de Segurança
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Desconfie de mensagens urgentes:</strong> Criminosos usam pressão de tempo
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Nunca clique em links suspeitos:</strong> Verifique o remetente
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Não compartilhe dados pessoais:</strong> Bancos nunca pedem nada por SMS
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Desconfie de números estranhos:</strong> Verifique o remetente
+                                </li>
+                                <li>
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Em caso de dúvida, ligue:</strong> Contate a instituição diretamente
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container-lg">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Sobre o Projeto</h6>
+                    <p class="text small">
+                        Detector de Smishing desenvolvido como TCC da UNIVESP
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Navegação</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="index.html" class="text-white text-decoration-none">Dashboard</a></li>
+                        <li><a href="detector.html" class="text-white text-decoration-none">Detector</a></li>
+                        <li><a href="sobre.html" class="text-white text-decoration-none">Sobre Nós</a></li>
+                        <li><a href="contato.html" class="text-white text-decoration-none">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Informações</h6>
+                    <p class="text small mb-2">
+                        <i class="fas fa-university me-2"></i>
+                        UNIVESP
+                    </p>
+                    <p class="text small">
+                        <i class="fas fa-code me-2"></i>
+                        Desenvolvido com ❤️
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-secondary">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text small mb-0">
+                        © 2025 Detector de Smishing. Todos os direitos reservados.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text small mb-0">
+                        Desenvolvido como material educacional
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/detector.js"></script>
+</body>
+</html>
