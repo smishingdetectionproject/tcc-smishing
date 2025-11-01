@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Event listeners
     if (formularioAnalise) {
+        // O event listener para o formulário está aqui
         formularioAnalise.addEventListener('submit', analisarMensagem);
     }
     
@@ -54,7 +55,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Inicializar contador
-    atualizarContador();
+    // Removido a chamada desnecessária de atualizarContador() aqui,
+    // pois o valor inicial é 0/500 e a função só deve ser chamada
+    // no evento 'input' ou 'novaAnalise'.
+    // O contador já é 0/500 no HTML, e a função novaAnalise() cuida
+    // de focar e atualizar se necessário.
 });
 
 // ============================================================================
