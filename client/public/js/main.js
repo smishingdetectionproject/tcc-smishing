@@ -15,11 +15,8 @@ const API_BASE_URL = (
     window.location.hostname === '127.0.0.1'
 ) 
     ? 'http://localhost:8000'  // Desenvolvimento local
-    : (import.meta?.env?.VITE_API_URL || 'https://seu-backend-url.com');  // Produção
+    : (import.meta?.env?.VITE_API_URL || 'https://detector-smishing-backend.onrender.com' );  // Produção
 
-// IMPORTANTE: Antes de publicar, configure a URL do backend em produção
-// Opção 1: Defina VITE_API_URL nas variáveis de ambiente do Netlify
-// Opção 2: Substitua 'https://seu-backend-url.com' pela URL real do seu backend
 
 // ============================================================================
 // FUNÇÕES AUXILIARES
@@ -28,7 +25,7 @@ const API_BASE_URL = (
 /**
  * Faz uma requisição para a API
  */
-async function fazerRequisicaoAPI(endpoint, metodo = 'GET', dados = null) {
+async function fazerRequisicaoAPI(endpoint, metodo = 'GET', dados = null ) {
     try {
         const opcoes = {
             method: metodo,
