@@ -232,7 +232,7 @@ Este projeto é fornecido como material educacional. Todos os direitos reservado
 ## 📞 Contato
 
 Para dúvidas, sugestões ou feedback, utilize o formulário de contato disponível em:
-- **URL**: [Entre em Contato](https://detectordesmishing.netlify.app/contato)
+- **URL**: [Entre em Contato Conosco](https://detectordesmishing.netlify.app/contato)
 
 ---
 
@@ -264,5 +264,5 @@ Para dúvidas, sugestões ou feedback, utilize o formulário de contato disponí
 **Desenvolvido com ❤️ para a comunidade brasileira**
 
 **Criado em**: Outubro de 2025  
-**Versão**: 1.1.1  
-**Status**: Em Fase Final de Desenvolvimento e Teste
+**Versão**: 2.0.0 
+**Status**: Em Produção e Testes Contínuos
