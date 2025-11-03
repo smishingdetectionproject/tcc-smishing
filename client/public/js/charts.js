@@ -17,35 +17,143 @@ const modelosData = {
     f1Score: [95.02, 88.71]
 };
 
-const distribuicaoData = {
-    labels: ['Mensagens Legítimas', 'Mensagens de Smishing'],
-    data: [2009, 552],
-    colors: ['#27AE60', '#E74C3C']
+// Dados de Matriz de Confusão (Exemplo - Random Forest)
+// [Verdadeiro Negativo, Falso Positivo]
+// [Falso Negativo, Verdadeiro Positivo]
+const matrizConfusaoData = [
+    [2000, 9],
+    [3, 549]
+];
+
+// Dados da Curva AUC (Exemplo - Random Forest)
+const aucData = {
+    auc: 0.99, // Valor da métrica AUC
+    // Dados de exemplo para plotar a curva ROC (FPR vs TPR)
+    fpr: [0.0, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+    tpr: [0.0, 0.85, 0.95, 0.97, 0.98, 0.985, 0.99, 0.995, 0.998, 0.999, 1.0, 1.0, 1.0]
 };
 
-// Palavras mais frequentes em smishing (extraído do dataset)
-const palavrasSmishing = [
-    { text: 'transferir', weight: 95 },
-    { text: 'confirmar', weight: 88 },
-    { text: 'urgente', weight: 85 },
-    { text: 'clique', weight: 82 },
-    { text: 'link', weight: 80 },
-    { text: 'dados', weight: 78 },
-    { text: 'conta', weight: 75 },
-    { text: 'senha', weight: 72 },
-    { text: 'código', weight: 70 },
-    { text: 'número', weight: 68 },
-    { text: 'banco', weight: 65 },
-    { text: 'cartão', weight: 63 },
-    { text: 'valor', weight: 60 },
-    { text: 'imediato', weight: 58 },
-    { text: 'ação', weight: 55 },
-    { text: 'enviar', weight: 52 },
-    { text: 'receber', weight: 50 },
-    { text: 'pagar', weight: 48 },
-    { text: 'depósito', weight: 45 },
-    { text: 'verificar', weight: 42 }
-];
+// ============================================================================
+// FUNÇÕES DE EXIBIÇÃO DE MÉTRICAS AVANÇADAS
+// ============================================================================
+
+function exibirMatrizConfusao() {
+    const container = document.getElementById('confusionMatrixContainer');
+    if (!container) return;
+
+    // Se os dados não estiverem disponíveis, exibe o placeholder
+    if (!matrizConfusaoData || matrizConfusaoData.length === 0) {
+        container.innerHTML = '<p class="text-muted">Em breve...</p>';
+        return;
+    }
+
+    // Cria a tabela da Matriz de Confusão
+    const tabela = `
+        <table class="table table-bordered text-center" style="max-width: 300px; margin: 20px auto;">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th colspan="2">Predito</th>
+                </tr>
+                <tr>
+                    <th></th>
+                    <th>Legítima (0)</th>
+                    <th>Smishing (1)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th rowspan="2">Real</th>
+                    <td>${matrizConfusaoData[0][0]} (VN)</td>
+                    <td class="text-danger">${matrizConfusaoData[0][1]} (FP)</td>
+                </tr>
+                <tr>
+                    <td>${matrizConfusaoData[1][0]} (FN)</td>
+                    <td class="text-success">${matrizConfusaoData[1][1]} (VP)</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="text-muted small">VN: Verdadeiro Negativo, FP: Falso Positivo, FN: Falso Negativo, VP: Verdadeiro Positivo</p>
+    `;
+    container.innerHTML = tabela;
+}
+
+function criarGraficoCurvaAUC() {
+    const container = document.getElementById('aucCurveContainer');
+    if (!container) return;
+
+    // Se os dados não estiverem disponíveis, exibe o placeholder
+    if (!aucData || !aucData.fpr || aucData.fpr.length === 0) {
+        container.innerHTML = '<p class="text-muted">Em breve...</p>';
+        return;
+    }
+
+    // Cria o canvas para o gráfico
+    container.innerHTML = '<canvas id="aucChart"></canvas>';
+    const ctx = document.getElementById('aucChart');
+
+    // Cria o gráfico da Curva ROC
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: aucData.fpr.map(f => f.toFixed(2)), // Usar FPR como labels (eixo X)
+            datasets: [
+                {
+                    label: `Curva ROC (AUC: ${aucData.auc.toFixed(2)})`,
+                    data: aucData.tpr.map((tpr, index) => ({ x: aucData.fpr[index], y: tpr })),
+                    borderColor: '#E74C3C',
+                    backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true,
+                    tension: 0.1
+                },
+                {
+                    label: 'Linha de Base (AUC: 0.5)',
+                    data: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+                    borderColor: '#95A5A6',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: `Curva ROC (AUC: ${aucData.auc.toFixed(2)})`
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: {
+                        display: true,
+                        text: 'Taxa de Falso Positivo (FPR)'
+                    },
+                    min: 0,
+                    max: 1
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Taxa de Verdadeiro Positivo (TPR)'
+                    },
+                    min: 0,
+                    max: 1
+                }
+            }
+        }
+    });
+}
 
 // ============================================================================
 // GRÁFICO DE COMPARAÇÃO DE MÉTRICAS
@@ -139,6 +247,12 @@ function criarGraficoMetricas() {
 // GRÁFICO DE DISTRIBUIÇÃO
 // ============================================================================
 
+const distribuicaoData = {
+    labels: ['Mensagens Legítimas', 'Mensagens de Smishing'],
+    data: [2009, 552],
+    colors: ['#27AE60', '#E74C3C']
+};
+
 function criarGraficoDistribuicao() {
     const ctx = document.getElementById('distributionChart');
     
@@ -190,6 +304,30 @@ function criarGraficoDistribuicao() {
 // NUVEM DE PALAVRAS
 // ============================================================================
 
+// Palavras mais frequentes em smishing (extraído do dataset)
+const palavrasSmishing = [
+    { text: 'transferir', weight: 95 },
+    { text: 'confirmar', weight: 88 },
+    { text: 'urgente', weight: 85 },
+    { text: 'clique', weight: 82 },
+    { text: 'link', weight: 80 },
+    { text: 'dados', weight: 78 },
+    { text: 'conta', weight: 75 },
+    { text: 'senha', weight: 72 },
+    { text: 'código', weight: 70 },
+    { text: 'número', weight: 68 },
+    { text: 'banco', weight: 65 },
+    { text: 'cartão', weight: 63 },
+    { text: 'valor', weight: 60 },
+    { text: 'imediato', weight: 58 },
+    { text: 'ação', weight: 55 },
+    { text: 'enviar', weight: 52 },
+    { text: 'receber', weight: 50 },
+    { text: 'pagar', weight: 48 },
+    { text: 'depósito', weight: 45 },
+    { text: 'verificar', weight: 42 }
+];
+
 function criarNuvemPalavras() {
     const container = document.getElementById('wordcloud');
     
@@ -237,6 +375,8 @@ document.addEventListener('DOMContentLoaded', function() {
     criarGraficoMetricas();
     criarGraficoDistribuicao();
     criarNuvemPalavras();
+    exibirMatrizConfusao(); // Novo
+    criarGraficoCurvaAUC(); // Novo
     
     // Recriar gráficos ao redimensionar a janela (responsividade)
     let resizeTimer;
@@ -245,6 +385,8 @@ document.addEventListener('DOMContentLoaded', function() {
         resizeTimer = setTimeout(function() {
             // Recriar a nuvem de palavras para ajustar ao novo tamanho
             criarNuvemPalavras();
+            // Recriar a curva AUC para ajustar ao novo tamanho
+            criarGraficoCurvaAUC(); 
         }, 250);
     });
 });
