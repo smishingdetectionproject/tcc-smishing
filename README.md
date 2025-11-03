@@ -22,7 +22,7 @@ Democratizar o conhecimento sobre segurança digital e fornecer uma ferramenta g
 ### 📊 Resultados
 
 - **Acurácia do Modelo Principal:** 97,86%
-- **Dataset:** 3.189 mensagens SMS (1.689 smishing, 1.500 legítimas)
+- **Dataset:** 2.561 mensagens SMS (552 smishing, 2.009 legítimas)
 - **Modelos Treinados:** Random Forest e Complement Naive Bayes
 - **Linguagem:** Português (Brasileiro)
 
@@ -152,9 +152,9 @@ O projeto utiliza um dataset de **3.189 mensagens SMS** em português (Brasileir
 
 | Classe | Quantidade | Percentual |
 |--------|-----------|-----------|
-| Legítimas | 1.500 | 47,1% |
-| Smishing | 1.689 | 52,9% |
-| **Total** | **3.189** | **100%** |
+| Legítimas | 2.009 | 78,45% |
+| Smishing | 552 | 21,55% |
+| **Total** | **2.561** | **100%** |
 
 **Fonte:** Dataset coletado de fontes públicas e validado manualmente
 

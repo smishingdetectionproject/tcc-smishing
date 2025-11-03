@@ -19,7 +19,7 @@ const modelosData = {
 
 const distribuicaoData = {
     labels: ['Mensagens Legítimas', 'Mensagens de Smishing'],
-    data: [1500, 1689],
+    data: [2009, 552],
     colors: ['#27AE60', '#E74C3C']
 };
 
