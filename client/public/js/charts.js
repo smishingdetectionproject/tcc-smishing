@@ -9,6 +9,9 @@
 // DADOS DOS MODELOS
 // ============================================================================
 
+// INSTRUÇÕES: Substitua os valores abaixo pelos dados reais do seu modelo.
+// Se os arrays matrizConfusaoData e aucData estiverem vazios, o site exibirá "Em Breve...".
+
 const modelosData = {
     models: ['Random Forest', 'Complement Naive Bayes'],
     acuracia: [97.86, 94.54],
@@ -17,21 +20,13 @@ const modelosData = {
     f1Score: [95.02, 88.71]
 };
 
-// Dados de Matriz de Confusão (Exemplo - Random Forest)
-// [Verdadeiro Negativo, Falso Positivo]
-// [Falso Negativo, Verdadeiro Positivo]
-const matrizConfusaoData = [
-    [2000, 9],
-    [3, 549]
-];
+// Matriz de Confusão: [ [VN, FP], [FN, VP] ]
+// Exemplo: const matrizConfusaoData = [ [2000, 9], [3, 549] ];
+const matrizConfusaoData = []; // DEIXE VAZIO PARA EXIBIR "EM BREVE..."
 
-// Dados da Curva AUC (Exemplo - Random Forest)
-const aucData = {
-    auc: 0.99, // Valor da métrica AUC
-    // Dados de exemplo para plotar a curva ROC (FPR vs TPR)
-    fpr: [0.0, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    tpr: [0.0, 0.85, 0.95, 0.97, 0.98, 0.985, 0.99, 0.995, 0.998, 0.999, 1.0, 1.0, 1.0]
-};
+// Curva AUC: { auc: valor, fpr: [array de fpr], tpr: [array de tpr] }
+// Exemplo: const aucData = { auc: 0.99, fpr: [0.0, 0.1, 0.2, 1.0], tpr: [0.0, 0.9, 0.95, 1.0] };
+const aucData = {}; // DEIXE VAZIO PARA EXIBIR "EM BREVE..."
 
 // ============================================================================
 // FUNÇÕES DE EXIBIÇÃO DE MÉTRICAS AVANÇADAS
@@ -41,7 +36,7 @@ function exibirMatrizConfusao() {
     const container = document.getElementById('confusionMatrixContainer');
     if (!container) return;
 
-    // Se os dados não estiverem disponíveis, exibe o placeholder
+    // Se os dados não estiverem disponíveis (array vazio), exibe o placeholder
     if (!matrizConfusaoData || matrizConfusaoData.length === 0) {
         container.innerHTML = '<p class="text-muted">Em breve...</p>';
         return;
@@ -82,7 +77,7 @@ function criarGraficoCurvaAUC() {
     const container = document.getElementById('aucCurveContainer');
     if (!container) return;
 
-    // Se os dados não estiverem disponíveis, exibe o placeholder
+    // Se os dados não estiverem disponíveis (objeto vazio ou sem fpr), exibe o placeholder
     if (!aucData || !aucData.fpr || aucData.fpr.length === 0) {
         container.innerHTML = '<p class="text-muted">Em breve...</p>';
         return;
@@ -156,8 +151,38 @@ function criarGraficoCurvaAUC() {
 }
 
 // ============================================================================
-// GRÁFICO DE COMPARAÇÃO DE MÉTRICAS
+// GRÁFICO DE COMPARAÇÃO DE MÉTRICAS (MANTIDO)
 // ============================================================================
+
+const distribuicaoData = {
+    labels: ['Mensagens Legítimas', 'Mensagens de Smishing'],
+    data: [2009, 552],
+    colors: ['#27AE60', '#E74C3C']
+};
+
+// Palavras mais frequentes em smishing (extraído do dataset)
+const palavrasSmishing = [
+    { text: 'transferir', weight: 95 },
+    { text: 'confirmar', weight: 88 },
+    { text: 'urgente', weight: 85 },
+    { text: 'clique', weight: 82 },
+    { text: 'link', weight: 80 },
+    { text: 'dados', weight: 78 },
+    { text: 'conta', weight: 75 },
+    { text: 'senha', weight: 72 },
+    { text: 'código', weight: 70 },
+    { text: 'número', weight: 68 },
+    { text: 'banco', weight: 65 },
+    { text: 'cartão', weight: 63 },
+    { text: 'valor', weight: 60 },
+    { text: 'imediato', weight: 58 },
+    { text: 'ação', weight: 55 },
+    { text: 'enviar', weight: 52 },
+    { text: 'receber', weight: 50 },
+    { text: 'pagar', weight: 48 },
+    { text: 'depósito', weight: 45 },
+    { text: 'verificar', weight: 42 }
+];
 
 function criarGraficoMetricas() {
     const ctx = document.getElementById('metricsChart');
@@ -244,14 +269,8 @@ function criarGraficoMetricas() {
 }
 
 // ============================================================================
-// GRÁFICO DE DISTRIBUIÇÃO
+// GRÁFICO DE DISTRIBUIÇÃO (MANTIDO)
 // ============================================================================
-
-const distribuicaoData = {
-    labels: ['Mensagens Legítimas', 'Mensagens de Smishing'],
-    data: [2009, 552],
-    colors: ['#27AE60', '#E74C3C']
-};
 
 function criarGraficoDistribuicao() {
     const ctx = document.getElementById('distributionChart');
@@ -301,32 +320,8 @@ function criarGraficoDistribuicao() {
 }
 
 // ============================================================================
-// NUVEM DE PALAVRAS
+// NUVEM DE PALAVRAS (MANTIDO)
 // ============================================================================
-
-// Palavras mais frequentes em smishing (extraído do dataset)
-const palavrasSmishing = [
-    { text: 'transferir', weight: 95 },
-    { text: 'confirmar', weight: 88 },
-    { text: 'urgente', weight: 85 },
-    { text: 'clique', weight: 82 },
-    { text: 'link', weight: 80 },
-    { text: 'dados', weight: 78 },
-    { text: 'conta', weight: 75 },
-    { text: 'senha', weight: 72 },
-    { text: 'código', weight: 70 },
-    { text: 'número', weight: 68 },
-    { text: 'banco', weight: 65 },
-    { text: 'cartão', weight: 63 },
-    { text: 'valor', weight: 60 },
-    { text: 'imediato', weight: 58 },
-    { text: 'ação', weight: 55 },
-    { text: 'enviar', weight: 52 },
-    { text: 'receber', weight: 50 },
-    { text: 'pagar', weight: 48 },
-    { text: 'depósito', weight: 45 },
-    { text: 'verificar', weight: 42 }
-];
 
 function criarNuvemPalavras() {
     const container = document.getElementById('wordcloud');
@@ -367,7 +362,7 @@ function criarNuvemPalavras() {
 }
 
 // ============================================================================
-// INICIALIZAÇÃO
+// INICIALIZAÇÃO (MANTIDO)
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -392,7 +387,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================================================
-// FUNÇÕES AUXILIARES
+// FUNÇÕES AUXILIARES (MANTIDO)
 // ============================================================================
 
 /**

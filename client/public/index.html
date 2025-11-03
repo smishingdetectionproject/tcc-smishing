@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="css/style.css">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23003366'>🛡;️</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%23003366'>🛡️</text></svg>">
 </head>
 <body>
     <!-- Navegação Principal -->
@@ -275,7 +275,8 @@
                             <div class="timeline-content">
                                 <h5 class="fw-bold">4. Validação e Teste</h5>
                                 <p class="text-muted">
-                                    O modelo final foi validado usando validação cruzada e testado em um conjunto de dados separado para garantir sua robustez e generalização.
+                                    Os modelos foram validados com dados de teste para garantir precisão e confiabilidade 
+                                    em cenários reais.
                                 </p>
                             </div>
                         </div>
@@ -285,20 +286,72 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
+    <!-- CTA Section -->
+    <section class="py-5" style="background: linear-gradient(135deg, #003366 0%, #004d99 100%);">
         <div class="container-lg text-center">
-            <p class="mb-0">
-                &copy; 2024 Detector de Smishing - Projeto de TCC UNIVESP.
+            <h2 class="h2 fw-bold text-white mb-3">Pronto para Testar?</h2>
+            <p class="lead text-white-50 mb-4">
+                Copie uma mensagem SMS suspeita e deixe nosso modelo analisar
             </p>
-            <p class="small text-muted mt-1">
-                Desenvolvido com Machine Learning para sua segurança.
-            </p>
+            <a href="detector.html" class="btn btn-lg btn-warning">
+                <i class="fas fa-arrow-right me-2"></i>
+                Ir para o Detector
+            </a>
+        </div>
+    </section>
+
+    <!-- Rodapé -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container-lg">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Sobre o Projeto</h6>
+                    <p class="text small">
+                        Detector de Smishing desenvolvido como TCC da UNIVESP, 
+                        combinando segurança digital e Machine Learning.
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Navegação</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="index.html" class="text-white text-decoration-none">Dashboard</a></li>
+                        <li><a href="detector.html" class="text-white text-decoration-none">Detector</a></li>
+                        <li><a href="sobre.html" class="text-white text-decoration-none">Sobre Nós</a></li>
+                        <li><a href="contato.html" class="text-white text-decoration-none">Contato</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6 class="fw-bold mb-3">Informações</h6>
+                    <p class="text small mb-2">
+                        <i class="fas fa-university me-2"></i>
+                        Universidade Virtual do Estado de São Paulo (UNIVESP)
+                    </p>
+                    <p class="text small">
+                        <i class="fas fa-code me-2"></i>
+                        Desenvolvido com ❤️ para a comunidade
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-secondary">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="text small mb-0">
+                        © 2025 Detector de Smishing. Todos os direitos reservados.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text small mb-0">
+                        Desenvolvido como material educacional
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <!-- Scripts -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts customizados -->
     <script src="js/charts.js"></script>
     <script src="js/main.js"></script>
 </body>
