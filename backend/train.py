@@ -185,13 +185,14 @@ def train_and_save_model():
     
     # 4. Empacotar e Salvar
     # O modelo final é um pipeline que inclui o vetorizador e o classificador
-    joblib.dump({'vectorizer': vectorizer, 'model': model}, 'model.joblib')
+    joblib.dump({'vectorizer': vectorizer, 'model': model}, MODEL_FILENAME)
     
     # 5. Salvar no Gist
     print("Salvando o novo modelo no Gist...")
-    update_gist_content(GIST_MODEL_ID, MODEL_FILENAME, pipeline)
+    with open(MODEL_FILENAME, 'rb') as f:
+        model_content_bytes = f.read()
     
-    print("Pipeline de MLOps concluído com sucesso!")
+update_gist_content(GIST_MODEL_ID, MODEL_FILENAME, model_content_bytes)
 
 if __name__ == "__main__":
     if not GITHUB_PAT:
