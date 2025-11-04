@@ -12,10 +12,11 @@ Data: 2025
 import os
 import csv
 import json
-import requests # Adicionado para comunicação com a API do GitHub
+import requests
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+from io import BytesIO # Adicionado para carregar o modelo do Gist
 
 import numpy as np
 import pandas as pd
@@ -58,43 +59,75 @@ DATA_DIR = BACKEND_DIR / "data"
 MODEL_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
 
-# Configurações do GitHub Gist para persistência do feedback
-GIST_ID = "49f7cfb15be23bb0add2a3ddc4ef343a" # ID fornecido pelo usuário
-GIST_FILENAME = "feedback.csv"
-GIST_API_URL = f"https://api.github.com/gists/{GIST_ID}"
+# Configurações do GitHub Gist para persistência
+GIST_FEEDBACK_ID = os.environ.get("GIST_FEEDBACK_ID", "49f7cfb15be23bb0add2a3ddc4ef343a")
+GIST_MODEL_ID = os.environ.get("GIST_MODEL_ID", "a844905fb97f000ae20a402ff438b472")
+GITHUB_PAT = os.environ.get("GITHUB_PAT")
 
-# Carregar o vetorizador TF-IDF
-try:
-    # Tentar carregar de um arquivo pickle
-    import pickle
-    with open(BACKEND_DIR / "tfidf_vectorizer.pkl", "rb") as f:
-        tfidf_vectorizer = pickle.load(f)
-    print("✓ Vetorizador TF-IDF carregado com sucesso")
-except Exception as e:
-    print(f"✗ Erro ao carregar vetorizador TF-IDF: {e}")
-    tfidf_vectorizer = None
+FEEDBACK_FILENAME = "feedback.csv"
+MODEL_FILENAME = "model.joblib"
+GIST_API_URL = "https://api.github.com/gists/"
 
-# Carregar o modelo Random Forest
-try:
-    import pickle
-    with open(BACKEND_DIR / "random_forest.pkl", "rb") as f:
-        model_rf = pickle.load(f)
-    print("✓ Modelo Random Forest carregado com sucesso")
-except Exception as e:
-    print(f"✗ Erro ao carregar modelo Random Forest: {e}")
-    model_rf = None
+# Variáveis globais para os modelos
+tfidf_vectorizer = None
+model_rf = None
+model_nb = None
+data_df = None # Dados de treinamento para análise
 
-# Carregar o modelo Complement Naive Bayes (como modelo alternativo)
-try:
-    import pickle
-    with open(BACKEND_DIR / "complement_naive_bayes.pkl", "rb") as f:
-        model_nb = pickle.load(f)
-    print("✓ Modelo Complement Naive Bayes carregado com sucesso")
-except Exception as e:
-    print(f"✗ Erro ao carregar modelo Complement Naive Bayes: {e}")
-    model_nb = None
+def load_model_from_gist():
+    """Baixa o modelo empacotado (vetorizador e classificador) do Gist."""
+    global tfidf_vectorizer, model_rf, model_nb
+    
+    headers = {"Authorization": f"token {GITHUB_PAT}"} if GITHUB_PAT else {}
+    
+    try:
+        # 1. Baixar o Gist
+        response = requests.get(f"{GIST_API_URL}{GIST_MODEL_ID}", headers=headers)
+        response.raise_for_status()
+        gist_data = response.json()
+        
+        if MODEL_FILENAME in gist_data["files"]:
+            # 2. Obter o URL do conteúdo binário
+            content_url = gist_data["files"][MODEL_FILENAME]["raw_url"]
+            content_response = requests.get(content_url, headers=headers)
+            content_response.raise_for_status()
+            
+            # 3. Carregar o modelo do conteúdo binário
+            pipeline = joblib.load(BytesIO(content_response.content))
+            
+            tfidf_vectorizer = pipeline['vectorizer']
+            model_rf = pipeline['model']
+            model_nb = pipeline['model'] # Usando o mesmo modelo para RF e NB por simplicidade no MLOps
+            
+            print("✓ Modelo de ML (vetorizador e classificador) carregado do Gist com sucesso.")
+            return True
+        else:
+            print(f"✗ Erro: Arquivo {MODEL_FILENAME} não encontrado no Gist {GIST_MODEL_ID}.")
+            return False
+            
+    except requests.exceptions.RequestException as e:
+        print(f"✗ Erro ao carregar modelo do Gist: {e}")
+        print("   Tentando carregar modelos locais (fallback)...")
+        
+        # Fallback para carregar modelos locais (se existirem)
+        try:
+            import pickle
+            with open(BACKEND_DIR / "tfidf_vectorizer.pkl", "rb") as f:
+                tfidf_vectorizer = pickle.load(f)
+            with open(BACKEND_DIR / "random_forest.pkl", "rb") as f:
+                model_rf = pickle.load(f)
+            with open(BACKEND_DIR / "complement_naive_bayes.pkl", "rb") as f:
+                model_nb = pickle.load(f)
+            print("✓ Modelos locais carregados com sucesso (Fallback).")
+            return True
+        except Exception as e_local:
+            print(f"✗ Erro ao carregar modelos locais: {e_local}")
+            return False
 
-# Carregar dados de treinamento para análise
+# Carregar o modelo na inicialização da API
+load_model_from_gist()
+
+# Carregar dados de treinamento para análise (opcional, se necessário para outras análises)
 try:
     data_df = pd.read_csv(BACKEND_DIR / "data_processed.csv")
     print(f"✓ Dados de treinamento carregados ({len(data_df)} registros)")
@@ -134,7 +167,7 @@ class FeedbackRequest(BaseModel):
     mensagem: str
     veredito_original: str
     feedback_util: bool
-    comentario_usuario: Optional[str] = None # Alterado para 'comentario_usuario'
+    comentario_usuario: Optional[str] = None # Alterado para 'comentario_usuario' e removido 'feedback_usuario'
 
 
 class FeedbackResponse(BaseModel):
@@ -178,12 +211,9 @@ def extrair_caracteristicas_smishing(mensagem: str) -> list[CaracteristicaDetect
     palavras_dados = ["senha", "pin", "código", "dados bancários", "confirmar dados", "verificar conta"]
     
     # Regex para documentos e cartões
-    # CPF (XXX.XXX.XXX-XX ou XXXXXXXXXXX)
-    # RG (XX.XXX.XXX-X ou XXXXXXXXXX)
-    # Cartão de Crédito (XXXX XXXX XXXX XXXX)
-    # Título de Eleitor (12 dígitos)
+    # CPF, RG, Título de Eleitor, Cartão de Crédito/Débito, Senha
     import re
-    regex_dados = r'\bcpf\b|\brg\b|\btítulo de eleitor\b|\bcartão de crédito\b|\bcartão de débito\b|\bcartão\b|\bcvv\b|\bdata de validade\b|\bvalidade do cartão\b'
+    regex_dados = r'\bcpf\b|\brg\b|\btítulo de eleitor\b|\bcartão de crédito\b|\bcartão de débito\b|\bcartão\b|\bcvv\b|\bdata de validade\b|\bvalidade do cartão\b|\bsenha\b'
     
     if any(palavra in mensagem_lower for palavra in palavras_dados) or re.search(regex_dados, mensagem_lower):
         caracteristicas.append(CaracteristicaDetectada(
@@ -204,7 +234,7 @@ def extrair_caracteristicas_smishing(mensagem: str) -> list[CaracteristicaDetect
             confianca=0.80
         ))
     
-    # Padrão 4: Links ou números suspeitos (Heurística Aprimorada)
+    # Padrão 4: Links ou números suspeitos
     # Regex para encontrar URLs
     url_pattern = re.compile(r'https?://[^\s]+|www\.[^\s]+|\bbit\.ly\b|\btinyurl\.com\b', re.IGNORECASE)
     links_encontrados = url_pattern.findall(mensagem)
@@ -285,225 +315,153 @@ def analisar_com_modelo(mensagem: str, modelo_nome: str = "random_forest") -> tu
     else:
         raise HTTPException(
             status_code=500,
-            detail="Nenhum modelo disponível para análise"
+            detail="Modelo de ML não carregado"
         )
     
-    # Fazer predição
+    # Previsão e Probabilidade
     predicao = modelo.predict(X)[0]
     probabilidades = modelo.predict_proba(X)[0]
     
-    # Mapear predição para veredito
-    # CORREÇÃO: 1 é Smishing, 0 é Legítima (conforme notebook de treinamento)
-    veredito = "Smishing" if predicao == 1 else "Legítima"
-    confianca = max(probabilidades)
-    
+    # A classe 1 é "Smishing" e a classe 0 é "Legítima"
+    if predicao == 1:
+        veredito = "Possível Tentativa de Smishing"
+        confianca = probabilidades[1]
+    else:
+        veredito = "Legítima"
+        confianca = probabilidades[0]
+        
     return veredito, confianca
+
+
+def salvar_feedback_no_gist(feedback_data: FeedbackRequest):
+    """Salva o feedback no arquivo CSV do Gist."""
+    
+    # 1. Baixar o conteúdo atual do Gist
+    headers = {"Authorization": f"token {GITHUB_PAT}"} if GITHUB_PAT else {}
+    
+    try:
+        response = requests.get(f"{GIST_API_URL}{GIST_FEEDBACK_ID}", headers=headers)
+        response.raise_for_status()
+        gist_data = response.json()
+        
+        # 2. Obter o conteúdo atual do CSV
+        current_content = ""
+        if FEEDBACK_FILENAME in gist_data["files"]:
+            current_content = gist_data["files"][FEEDBACK_FILENAME]["content"]
+        
+        # 3. Adicionar o novo feedback
+        new_row = {
+            "timestamp": datetime.now().isoformat(),
+            "mensagem": feedback_data.mensagem.replace('"', '""'), # Escape aspas
+            "veredito_original": feedback_data.veredito_original,
+            "feedback_util": feedback_data.feedback_util,
+            "comentario_usuario": feedback_data.comentario_usuario.replace('"', '""') if feedback_data.comentario_usuario else ""
+        }
+        
+        # Formatar a nova linha CSV
+        new_line = f'{new_row["timestamp"]},"{new_row["mensagem"]}","{new_row["veredito_original"]}",{new_row["feedback_util"]},"{new_row["comentario_usuario"]}"\n'
+        
+        # Se o conteúdo atual estiver vazio, adiciona o cabeçalho
+        if not current_content:
+            current_content = "timestamp,mensagem,veredito_original,feedback_util,comentario_usuario\n"
+        
+        updated_content = current_content + new_line
+        
+        # 4. Atualizar o Gist
+        data = {
+            "files": {
+                FEEDBACK_FILENAME: {
+                    "content": updated_content
+                }
+            }
+        }
+        
+        response = requests.patch(f"{GIST_API_URL}{GIST_FEEDBACK_ID}", headers=headers, json=data)
+        response.raise_for_status()
+        
+        return True
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao salvar feedback no Gist: {e}")
+        return False
 
 
 # ============================================================================
 # ENDPOINTS DA API
 # ============================================================================
 
-@app.get("/")
-async def root():
-    """Endpoint raiz para verificar se a API está funcionando"""
-    return {
-        "nome": "Detector de Smishing",
-        "versao": "1.0.0",
-        "status": "ativo",
-        "modelos_carregados": {
-            "random_forest": model_rf is not None,
-            "naive_bayes": model_nb is not None,
-            "tfidf_vectorizer": tfidf_vectorizer is not None
-        }
-    }
-
-
-@app.get("/health")
-async def health_check():
-    """Endpoint para verificação de saúde da API"""
-    return {
-        "status": "ok",
-        "timestamp": datetime.now().isoformat()
-    }
-
-
 @app.post("/analisar", response_model=AnaliseResponse)
-async def analisar_mensagem(request: AnaliseRequest):
-    """
-    Analisa uma mensagem SMS para detectar smishing.
+async def analisar_sms(request: AnaliseRequest):
+    """Endpoint para analisar uma mensagem SMS."""
     
-    Args:
-        request: Objeto contendo a mensagem e modelo a usar
-        
-    Returns:
-        Resposta com veredito, confiança e características detectadas
-    """
-    # Validar entrada
-    if not request.mensagem or len(request.mensagem.strip()) == 0:
-        raise HTTPException(
-            status_code=400,
-            detail="Mensagem não pode estar vazia"
-        )
+    mensagem = request.mensagem
+    modelo_nome = request.modelo
     
-    # 1. Análise do Modelo de ML
-    veredito, confianca = analisar_com_modelo(request.mensagem, request.modelo)
-    modelo_usado = request.modelo
+    # 1. Extrair Características Heurísticas
+    caracteristicas = extrair_caracteristicas_smishing(mensagem)
     
-    # 2. Extração de Características Heurísticas
-    caracteristicas = extrair_caracteristicas_smishing(request.mensagem)
+    # 2. Análise do Modelo de ML
+    veredito_ml, confianca_ml = analisar_com_modelo(mensagem, modelo_nome)
     
-    # 3. Regra de SOBREPOSIÇÃO (OVERRIDE) para casos críticos:
-    # Se o modelo classificou como Legítima, mas há uma combinação crítica de características heurísticas,
-    # forçar a classificação para Smishing.
+    # 3. Lógica de Override (Regra de Segurança Crítica)
     
+    # Verificar se há Urgência + Pedido de Dados OU Links Suspeitos
     tem_urgencia = any(c.nome == "Senso de Urgência" for c in caracteristicas)
-    tem_dados_pessoais = any(c.nome == "Pedido de Dados Pessoais/Documentos" for c in caracteristicas)
-    tem_links = any(c.nome == "Presença de Links Suspeitos" for c in caracteristicas)
+    tem_dados = any(c.nome == "Pedido de Dados Pessoais/Documentos" for c in caracteristicas)
+    tem_link_suspeito = any(c.nome == "Presença de Links Suspeitos" for c in caracteristicas)
     
-    # Condição de override: (Urgência + Dados Pessoais) OU (Presença de Links Suspeitos)
-    if veredito == "Legítima" and ( (tem_urgencia and tem_dados_pessoais) or tem_links ):
-        veredito = "Smishing"
-        # Aumentar a confiança para refletir a certeza da regra de segurança
-        confianca = max(confianca, 0.99) 
+    # Se o modelo disse que é legítima, mas há indicadores críticos, forçamos o Smishing
+    if veredito_ml == "Legítima" and ((tem_urgencia and tem_dados) or tem_link_suspeito):
+        
+        veredito_final = "Possível Tentativa de Smishing"
+        confianca_final = max(confianca_ml, 0.90) # Aumenta a confiança para refletir a regra
+        
+        # Construir a explicação do Override
         explicacao = (
-            "Esta mensagem foi classificada como uma **possível tentativa de smishing** por uma regra de segurança crítica. "
-            "O modelo de ML a considerou legítima, mas a combinação de **Senso de Urgência** e "
-            "**Pedido de Dados Pessoais/Documentos** OU a **Presença de Links Suspeitos** são indicadores fortíssimos de golpe. "
-            "Recomendamos extrema cautela."
+            f"Esta mensagem foi classificada como **{veredito_final}** por uma regra de "
+            f"segurança crítica. O modelo de ML a considerou **{veredito_ml}**, mas a combinação de "
+            f"**Senso de Urgência** e **Pedido de Dados Pessoais/Documentos** OU **Presença de "
+            f"Links Suspeitos** são indicadores fortíssimos de golpe. Recomendamos extrema cautela."
         )
+        
     else:
-        # Gerar explicação baseada no veredito do modelo (ou do override)
-        if veredito == "Smishing":
+        # Se não houver override, usamos o resultado do modelo
+        veredito_final = veredito_ml
+        confianca_final = confianca_ml
+        
+        if veredito_final == "Possível Tentativa de Smishing":
             explicacao = (
-                "Esta mensagem foi classificada como uma **possível tentativa de smishing** "
-                "(phishing por SMS). Ela apresenta características comuns "
-                "em mensagens fraudulentas. Não clique em links, não compartilhe "
-                "dados pessoais e não realize transferências solicitadas."
+                f"Esta mensagem foi classificada como **{veredito_final}** com **{confianca_final:.2%}** de confiança pelo modelo **{modelo_nome.replace('_', ' ').title()}**. "
+                f"Foram detectadas características comuns em golpes. Prossiga com cautela."
             )
         else:
             explicacao = (
-                "Esta mensagem foi classificada como legítima. No entanto, sempre "
-                "mantenha a cautela com mensagens não esperadas. Se tiver dúvidas, "
-                "entre em contato diretamente com a instituição."
+                f"Esta mensagem foi classificada como **{veredito_final}** com **{confianca_final:.2%}** de confiança pelo modelo **{modelo_nome.replace('_', ' ').title()}**. "
+                f"No entanto, sempre mantenha a cautela com mensagens não esperadas. Se tiver dúvidas, entre em contato diretamente com a instituição."
             )
-        
-        # Se for legítima, mas tiver características suspeitas, adicionar um alerta
-        if veredito == "Legítima" and len(caracteristicas) > 0:
-            explicacao += " **ATENÇÃO:** Embora o modelo a considere legítima, foram detectadas características comuns em golpes. Prossiga com cautela."
-        
-        # Se for Smishing, mas a confiança for baixa, adicionar um alerta
-        if veredito == "Smishing" and confianca < 0.7:
-            explicacao += " **NOTA:** A confiança do modelo nesta classificação é baixa. Considere a análise das características detectadas."
-            
+
     return AnaliseResponse(
-        veredito=veredito,
-        confianca=confianca,
+        veredito=veredito_final,
+        confianca=confianca_final,
         caracteristicas=caracteristicas,
         explicacao=explicacao,
-        modelo_usado=modelo_usado
+        modelo_usado=modelo_nome.replace('_', ' ').title()
     )
 
 
-def get_gist_content() -> str:
-    """Busca o conteúdo atual do Gist."""
-    headers = {
-        "Authorization": f"token {os.environ.get('GITHUB_PAT')}",
-        "Accept": "application/vnd.github.v3+json"
-    }
-    
-    try:
-        response = requests.get(GIST_API_URL, headers=headers)
-        response.raise_for_status()
-        
-        gist_data = response.json()
-        
-        if GIST_FILENAME in gist_data["files"]:
-            return gist_data["files"][GIST_FILENAME]["content"]
-        else:
-            # Se o arquivo não existir no Gist, retorna apenas o cabeçalho
-            return "timestamp,mensagem,veredito_original,feedback_util,comentario_usuario\n"
-            
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao buscar Gist: {e}")
-        # Em caso de erro, retorna apenas o cabeçalho para evitar perda de dados
-        return "timestamp,mensagem,veredito_original,feedback_util,comentario_usuario\n"
-
-
-def update_gist_content(new_content: str) -> bool:
-    """Atualiza o conteúdo do Gist."""
-    headers = {
-        "Authorization": f"token {os.environ.get('GITHUB_PAT')}",
-        "Accept": "application/vnd.github.v3+json"
-    }
-    
-    data = {
-        "files": {
-            GIST_FILENAME: {
-                "content": new_content
-            }
-        }
-    }
-    
-    try:
-        response = requests.patch(GIST_API_URL, headers=headers, json=data)
-        response.raise_for_status()
-        return True
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao atualizar Gist: {e}")
-        return False
-
-
 @app.post("/feedback", response_model=FeedbackResponse)
-async def receber_feedback(request: FeedbackRequest):
-    """
-    Recebe feedback do usuário e salva no GitHub Gist.
+async def receber_feedback(feedback: FeedbackRequest):
+    """Endpoint para receber feedback do usuário e salvar no Gist."""
     
-    Args:
-        request: Objeto contendo o feedback do usuário
+    if not GITHUB_PAT:
+        return FeedbackResponse(sucesso=False, mensagem="Erro: Variável GITHUB_PAT não configurada no servidor.")
         
-    Returns:
-        Resposta de sucesso
-    """
-    # 1. Obter o conteúdo atual do Gist
-    current_content = get_gist_content()
-    
-    # 2. Formatar o novo feedback
-    novo_feedback = {
-        'timestamp': datetime.now().isoformat(),
-        'mensagem': request.mensagem.replace('\n', ' ').replace('\r', ''), # Remover quebras de linha para CSV
-        'veredito_original': request.veredito_original,
-        'feedback_util': request.feedback_util,
-        'comentario_usuario': request.comentario_usuario.replace('\n', ' ').replace('\r', '') if request.comentario_usuario else ''
-    }
-    
-    # Converter o novo feedback para a linha CSV
-    fieldnames = ['timestamp', 'mensagem', 'veredito_original', 'feedback_util', 'comentario_usuario']
-    
-    # Usar StringIO para simular a escrita CSV e obter a linha
-    import io
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
-    writer.writerow(novo_feedback)
-    nova_linha_csv = output.getvalue().strip()
-    
-    # 3. Anexar a nova linha ao conteúdo
-    # Se o conteúdo atual for apenas o cabeçalho, a nova linha já tem o cabeçalho.
-    # Se não for, removemos o cabeçalho da nova linha (que o DictWriter adiciona)
-    if current_content.endswith('\n'):
-        novo_conteudo = current_content + nova_linha_csv
+    if salvar_feedback_no_gist(feedback):
+        return FeedbackResponse(sucesso=True, mensagem="Feedback recebido com sucesso! Obrigado por ajudar a treinar o modelo.")
     else:
-        # Se o arquivo não terminar com \n, adicionamos um e a nova linha
-        novo_conteudo = current_content + '\n' + nova_linha_csv
-    
-    # 4. Atualizar o Gist
-    if update_gist_content(novo_conteudo):
-        return FeedbackResponse(
-            sucesso=True,
-            mensagem="Feedback recebido com sucesso e salvo no GitHub Gist. Obrigado por ajudar a melhorar o modelo!"
-        )
-    else:
-        raise HTTPException(
-            status_code=500,
-            detail="Erro ao salvar feedback no GitHub Gist. Verifique o GIST_ID e o GITHUB_PAT."
-        )
+        return FeedbackResponse(sucesso=False, mensagem="Erro ao salvar o feedback. Tente novamente mais tarde.")
+
+@app.get("/status")
+async def get_status():
+    """Endpoint de saúde da API."""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
