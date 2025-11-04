@@ -29,7 +29,7 @@ GIST_API_URL = "https://api.github.com/gists/"
 # FUNÇÕES DE COMUNICAÇÃO COM O GIST
 # ============================================================================
 
-def get_gist_content(gist_id, filename):
+def get_gist_content(gist_id, filename ):
     """Baixa o conteúdo de um arquivo de um Gist."""
     headers = {"Authorization": f"token {GITHUB_PAT}"} if GITHUB_PAT else {}
     
@@ -185,14 +185,24 @@ def train_and_save_model():
     
     # 4. Empacotar e Salvar
     # O modelo final é um pipeline que inclui o vetorizador e o classificador
+    
+    # Salva o pipeline no disco
     joblib.dump({'vectorizer': vectorizer, 'model': model}, MODEL_FILENAME)
     
     # 5. Salvar no Gist
     print("Salvando o novo modelo no Gist...")
+    
+    # LÊ o arquivo salvo em modo binário e armazena na variável
     with open(MODEL_FILENAME, 'rb') as f:
         model_content_bytes = f.read()
+        
+    # Usa a variável que acabou de ser definida
+    update_gist_content(GIST_MODEL_ID, MODEL_FILENAME, model_content_bytes)
     
-update_gist_content(GIST_MODEL_ID, MODEL_FILENAME, model_content_bytes)
+    # Opcional: Remover o arquivo local após o upload
+    os.remove(MODEL_FILENAME)
+    
+    print("Pipeline de MLOps concluído com sucesso!")
 
 if __name__ == "__main__":
     if not GITHUB_PAT:
