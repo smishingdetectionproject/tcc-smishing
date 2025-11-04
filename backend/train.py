@@ -185,7 +185,7 @@ def train_and_save_model():
     
     # 4. Empacotar e Salvar
     # O modelo final é um pipeline que inclui o vetorizador e o classificador
-    pipeline = joblib.dump({'vectorizer': vectorizer, 'model': model}, None)
+    joblib.dump({'vectorizer': vectorizer, 'model': model}, 'model.joblib')
     
     # 5. Salvar no Gist
     print("Salvando o novo modelo no Gist...")
