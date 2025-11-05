@@ -30,7 +30,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sqlmodel import Session, select
 
 # Importar componentes do banco de dados
-from .database import create_db_and_tables, load_active_model_from_db, get_session, Feedback, ModelMetadata
+# Importar componentes do banco de dados
+# Importação absoluta para evitar problemas de execução no Render
+from database import create_db_and_tables, load_active_model_from_db, get_session, Feedback, ModelMetadata
 
 # ============================================================================
 # CONFIGURAÇÃO INICIAL
@@ -136,6 +138,63 @@ def on_startup():
     """Inicializa o banco de dados e carrega os modelos na inicialização da API."""
     create_db_and_tables()
     load_models_from_db()
+
+# ============================================================================
+# ROTA TEMPORÁRIA PARA INSERÇÃO DO DATASET (SEM ACESSO AO SHELL)
+# ============================================================================
+
+@app.get("/insert_dataset", tags=["Admin"], response_model=dict)
+def insert_dataset(session: Annotated[Session, Depends(get_session)]):
+    """
+    ROTA TEMPORÁRIA: Insere o dataset original (dataset_original.csv) no BD.
+    Deve ser executada APENAS UMA VEZ após o deploy.
+    """
+    DATASET_CSV_FILENAME = "dataset_original.csv"
+    
+    # 1. Verifica se o arquivo CSV existe
+    if not os.path.exists(DATASET_CSV_FILENAME):
+        raise HTTPException(status_code=404, detail=f"Arquivo CSV não encontrado: {DATASET_CSV_FILENAME}. Certifique-se de que ele está no diretório backend/.")
+
+    # 2. Verifica se o dataset já foi inserido
+    existing_data = session.exec(select(Dataset).where(Dataset.source == "original")).first()
+    if existing_data:
+        return {"sucesso": False, "mensagem": "Dataset original já inserido no banco de dados. Rota desnecessária."}
+
+    # 3. Carrega o CSV
+    try:
+        df = pd.read_csv(DATASET_CSV_FILENAME)
+        if 'text' not in df.columns or 'label' not in df.columns:
+            raise HTTPException(status_code=400, detail="O CSV deve conter as colunas 'text' e 'label'.")
+            
+        df['label'] = df['label'].astype(int)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao carregar ou processar o CSV: {e}")
+
+    # 4. Insere os dados no BD
+    count = 0
+    for index, row in df.iterrows():
+        dataset_entry = Dataset(
+            text=row['text'],
+            label=row['label'],
+            source="original"
+        )
+        session.add(dataset_entry)
+        count += 1
+        
+    session.commit()
+    
+    # 5. Dispara o primeiro treinamento após a inserção
+    try:
+        subprocess.run(["python3", "train.py"], check=True, cwd=BACKEND_DIR)
+        treinamento_status = "Treinamento inicial disparado com sucesso."
+    except subprocess.CalledProcessError as e:
+        treinamento_status = f"Erro ao disparar o treinamento inicial: {e}"
+        
+    return {
+        "sucesso": True, 
+        "mensagem": f"Dataset original inserido com sucesso! {count} registros. {treinamento_status}"
+    }
 
 # Carregar dados de treinamento para análise (opcional, se necessário para outras análises)
 # Removido o carregamento de data_processed.csv, pois o dataset será gerenciado pelo BD

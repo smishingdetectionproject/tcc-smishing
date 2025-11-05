@@ -12,7 +12,9 @@ from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_sc
 from sqlmodel import Session, select
 
 # Importar modelos e funções do banco de dados
-from .database import Dataset, Feedback, ModelMetadata, save_model_to_db, engine
+# Importar modelos e funções do banco de dados
+# Importação absoluta para evitar problemas de execução no Render
+from database import Dataset, Feedback, ModelMetadata, save_model_to_db, engine
 
 # ============================================================================
 # CONFIGURAÇÕES DO GIST E VARIÁVEIS DE AMBIENTE
@@ -190,6 +192,6 @@ def train_and_save_model():
 
 if __name__ == "__main__":
     # A inicialização do BD deve ser feita antes de treinar
-    from .database import create_db_and_tables
+    from database import create_db_and_tables
     create_db_and_tables()
     train_and_save_model()
