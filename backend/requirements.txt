@@ -10,4 +10,5 @@ python-dotenv==1.0.0
 gunicorn==22.0.0
 requests
 joblib
-
+sqlmodel
+psycopg2-binary

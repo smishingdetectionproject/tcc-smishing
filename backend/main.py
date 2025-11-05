@@ -15,18 +15,22 @@ import json
 import requests
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Annotated
 from io import BytesIO, StringIO
 import base64 
 import subprocess # ADICIONADO: Para executar o train.py na rota /train_model
 
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sqlmodel import Session, select
+
+# Importar componentes do banco de dados
+from .database import create_db_and_tables, load_active_model_from_db, get_session, Feedback, ModelMetadata
 
 # ============================================================================
 # CONFIGURAÇÃO INICIAL
@@ -61,14 +65,9 @@ DATA_DIR = BACKEND_DIR / "data"
 MODEL_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
 
-# Configurações do GitHub Gist para persistência
-GIST_FEEDBACK_ID = os.environ.get("GIST_FEEDBACK_ID", "49f7cfb15be23bb0add2a3ddc4ef343a")
-GIST_MODEL_ID = os.environ.get("GIST_MODEL_ID", "a844905fb97f000ae20a402ff438b472")
-GITHUB_PAT = os.environ.get("GITHUB_PAT")
-
-FEEDBACK_FILENAME = "feedback.csv"
-MODEL_FILENAME = "model.joblib"
-GIST_API_URL = "https://api.github.com/gists/"
+# Configurações do Banco de Dados
+# O DATABASE_URL é configurado em database.py
+# Variáveis de ambiente GIST_... removidas.
 
 # Variáveis globais para os modelos
 tfidf_vectorizer = None
@@ -76,75 +75,80 @@ model_rf = None
 model_nb = None
 data_df = None # Dados de treinamento para análise
 
-def load_model_from_gist( ):
-    """Baixa o modelo empacotado (vetorizador e ambos os classificadores) do Gist."""
+def load_models_from_db():
+    """Carrega o vetorizador e os modelos ativos do banco de dados."""
     global tfidf_vectorizer, model_rf, model_nb
     
-    headers = {"Authorization": f"token {GITHUB_PAT}"} if GITHUB_PAT else {}
-    
     try:
-        # 1. Baixar o Gist (Obter o JSON do Gist)
-        response = requests.get(f"{GIST_API_URL}{GIST_MODEL_ID}", headers=headers)
-        response.raise_for_status()
-        gist_data = response.json()
+        # 1. Carregar binário do Naive Bayes
+        nb_binary, nb_metadata = load_active_model_from_db("naive_bayes")
         
-        if MODEL_FILENAME in gist_data["files"]:
-            # 2. Obter o conteúdo do arquivo. O Gist armazena o binário como uma string Base64
-            # CORREÇÃO: Usamos o campo 'content' que contém a string Base64, não a 'raw_url'
-            gist_content_base64 = gist_data["files"][MODEL_FILENAME]["content"]
-            
-            # 3. Decodificar a string Base64 para bytes binários
-            model_content_bytes = base64.b64decode(gist_content_base64)
-            
-            # 4. Carregar o modelo do conteúdo binário
-            pipeline = joblib.load(BytesIO(model_content_bytes))
-            
-            # 5. Carregar AMBOS os modelos separadamente
-            tfidf_vectorizer = pipeline['vectorizer']
-            model_rf = pipeline.get('model_rf', None)  # Random Forest
-            model_nb = pipeline.get('model_nb', None)  # Naive Bayes
-            
-            # Exibir F1-scores se disponíveis
-            f1_nb = pipeline.get('f1_score_nb', 'N/A')
-            f1_rf = pipeline.get('f1_score_rf', 'N/A')
-            
-            print("✓ Modelos de ML carregados do Gist com sucesso.")
-            print(f"  - Naive Bayes (F1-Score: {f1_nb})")
-            print(f"  - Random Forest (F1-Score: {f1_rf})")
-            return True
+        if nb_binary:
+            pipeline_nb = joblib.load(BytesIO(nb_binary))
+            tfidf_vectorizer = pipeline_nb['vectorizer']
+            model_nb = pipeline_nb['model']
+            f1_nb = nb_metadata.f1_score
+            print(f"✓ Modelo Naive Bayes (F1-Score: {f1_nb:.4f}) carregado do BD.")
         else:
-            print(f"✗ Erro: Arquivo {MODEL_FILENAME} não encontrado no Gist {GIST_MODEL_ID}.")
-            return False
+            print("✗ Modelo Naive Bayes ativo não encontrado no BD.")
             
-    except requests.exceptions.RequestException as e:
-        print(f"✗ Erro ao carregar modelo do Gist: {e}")
-        print("   Tentando carregar modelos locais (fallback)...")
+        # 2. Carregar binário do Random Forest
+        rf_binary, rf_metadata = load_active_model_from_db("random_forest")
         
-        # Fallback para carregar modelos locais (se existirem)
-        try:
-            import pickle
-            with open(BACKEND_DIR / "tfidf_vectorizer.pkl", "rb") as f:
-                tfidf_vectorizer = pickle.load(f)
-            with open(BACKEND_DIR / "random_forest.pkl", "rb") as f:
-                model_rf = pickle.load(f)
-            with open(BACKEND_DIR / "complement_naive_bayes.pkl", "rb") as f:
-                model_nb = pickle.load(f)
-            print("✓ Modelos locais carregados com sucesso (Fallback).")
-            return True
-        except Exception as e_local:
-            print(f"✗ Erro ao carregar modelos locais: {e_local}")
-            return False
+        if rf_binary:
+            pipeline_rf = joblib.load(BytesIO(rf_binary))
+            # O vetorizador deve ser o mesmo, mas carregamos o modelo
+            model_rf = pipeline_rf['model']
+            f1_rf = rf_metadata.f1_score
+            print(f"✓ Modelo Random Forest (F1-Score: {f1_rf:.4f}) carregado do BD.")
+        else:
+            print("✗ Modelo Random Forest ativo não encontrado no BD.")
+            
+        # Fallback para carregar modelos locais (se existirem) - Mantido por segurança
+        if tfidf_vectorizer is None:
+            try:
+                import pickle
+                with open(BACKEND_DIR / "tfidf_vectorizer.pkl", "rb") as f:
+                    tfidf_vectorizer = pickle.load(f)
+                with open(BACKEND_DIR / "random_forest.pkl", "rb") as f:
+                    model_rf = pickle.load(f)
+                with open(BACKEND_DIR / "complement_naive_bayes.pkl", "rb") as f:
+                    model_nb = pickle.load(f)
+                print("✓ Modelos locais carregados com sucesso (Fallback).")
+            except Exception as e_local:
+                print(f"✗ Erro ao carregar modelos locais: {e_local}")
+                
+    except Exception as e:
+        print(f"✗ Erro geral ao carregar modelos do BD: {e}")
 
-# Carregar o modelo na inicialização da API
-load_model_from_gist()
+def get_model_metadata(model_name: str, session: Session):
+    """Busca os metadados do modelo ativo."""
+    metadata = session.exec(
+        select(ModelMetadata).where(
+            ModelMetadata.model_name == model_name,
+            ModelMetadata.is_active == True
+        ).order_by(ModelMetadata.timestamp.desc())
+    ).first()
+    return metadata
+
+@app.on_event("startup")
+def on_startup():
+    """Inicializa o banco de dados e carrega os modelos na inicialização da API."""
+    create_db_and_tables()
+    load_models_from_db()
 
 # Carregar dados de treinamento para análise (opcional, se necessário para outras análises)
+# Removido o carregamento de data_processed.csv, pois o dataset será gerenciado pelo BD
 try:
-    data_df = pd.read_csv(BACKEND_DIR / "data_processed.csv")
-    print(f"✓ Dados de treinamento carregados ({len(data_df)} registros)")
+    # Apenas para manter a variável data_df, se for usada em outro lugar
+    data_df = None
+    print("✓ Carregamento de dados de treinamento local removido (agora via BD).")
 except Exception as e:
     print(f"✗ Erro ao carregar dados de treinamento: {e}")
     data_df = None
+
+# A inicialização e carregamento agora ocorrem na função on_startup()
+# O carregamento de dados de treinamento local foi removido.
 
 # ============================================================================
 # MODELOS DE DADOS (Pydantic)
@@ -315,92 +319,21 @@ def forcar_smishing(caracteristicas: list[CaracteristicaDetectada]) -> bool:
     return False
 
 
-def get_gist_content_text(gist_id, filename):
-    """Baixa o conteúdo de um arquivo de um Gist como texto (usado para CSV)."""
-    headers = {"Authorization": f"token {GITHUB_PAT}"} if GITHUB_PAT else {}
+def save_feedback_to_db(feedback_data: FeedbackRequest, session: Session):
+    """Salva o feedback do usuário no banco de dados."""
     
-    try:
-        # 1. Baixar o Gist (Obter o JSON do Gist)
-        response = requests.get(f"{GIST_API_URL}{gist_id}", headers=headers)
-        response.raise_for_status()
-        gist_data = response.json()
-        
-        if filename in gist_data["files"]:
-            # 2. Obter o URL do conteúdo bruto
-            content_url = gist_data["files"][filename]["raw_url"]
-            content_response = requests.get(content_url, headers=headers)
-            content_response.raise_for_status()
-            return content_response.text
-        else:
-            print(f"Erro: Arquivo {filename} não encontrado no Gist {gist_id}.")
-            return None
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao acessar o Gist {gist_id}: {e}")
-        return None
-
-
-def update_feedback_gist(feedback_data: FeedbackRequest):
-    """
-    Adiciona o feedback a um CSV no Gist.
+    db_feedback = Feedback(
+        mensagem=feedback_data.mensagem.replace('\n', ' ').replace('\r', ''),
+        veredito_original=feedback_data.veredito_original,
+        feedback_util=feedback_data.feedback_util,
+        comentario_usuario=feedback_data.comentario_usuario,
+        modelo_usado=feedback_data.modelo
+    )
     
-    Esta função baixa o CSV atual, anexa a nova linha e reenvia o arquivo.
-    """
-    
-    # 1. Baixar o conteúdo atual do CSV
-    csv_content = get_gist_content_text(GIST_FEEDBACK_ID, FEEDBACK_FILENAME)
-    
-    # 2. Preparar a nova linha
-    nova_linha = {
-        'timestamp': datetime.now().isoformat(),
-        'mensagem': feedback_data.mensagem.replace('\n', ' ').replace('\r', ''), # Limpar quebras de linha
-        'veredito_original': feedback_data.veredito_original,
-        'feedback_util': feedback_data.feedback_util,
-        'comentario_usuario': feedback_data.comentario_usuario if feedback_data.comentario_usuario else ""
-    }
-    
-    # 3. Anexar a nova linha
-    if csv_content:
-        # Se o arquivo existe, apenas anexa a nova linha
-        csv_reader = csv.reader(StringIO(csv_content))
-        header = next(csv_reader)
-        
-        # Converte a nova linha para CSV
-        output = StringIO()
-        writer = csv.writer(output)
-        writer.writerow([nova_linha[col] for col in header])
-        
-        novo_csv_content = csv_content + output.getvalue()
-    else:
-        # Se o arquivo não existe, cria o cabeçalho e a primeira linha
-        header = list(nova_linha.keys())
-        output = StringIO()
-        writer = csv.writer(output)
-        writer.writerow(header)
-        writer.writerow(list(nova_linha.values()))
-        novo_csv_content = output.getvalue()
-        
-    # 4. Atualizar o Gist
-    headers = {
-        "Authorization": f"token {GITHUB_PAT}",
-        "Accept": "application/vnd.github.v3+json"
-    }
-    
-    data = {
-        "files": {
-            FEEDBACK_FILENAME: {
-                "content": novo_csv_content
-            }
-        }
-    }
-    
-    try:
-        response = requests.patch(f"{GIST_API_URL}{GIST_FEEDBACK_ID}", headers=headers, json=data)
-        response.raise_for_status()
-        return True
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao atualizar o Gist de feedback: {e}")
-        print(f"Resposta do GitHub: {response.text if 'response' in locals() else 'N/A'}")
-        return False
+    session.add(db_feedback)
+    session.commit()
+    session.refresh(db_feedback)
+    return True
 
 
 # ============================================================================
@@ -451,8 +384,11 @@ def trigger_training():
 
 
 @app.post("/analisar", response_model=AnaliseResponse)
-def analisar_sms(request: AnaliseRequest):
+def analisar_sms(request: AnaliseRequest, session: Annotated[Session, Depends(get_session)]):
     """Analisa uma mensagem SMS para detectar smishing."""
+    
+    # Adicionamos a dependência de sessão, mas ela não é usada diretamente aqui.
+    # É mantida para consistência, caso o usuário queira logar a predição no futuro.
     
     if tfidf_vectorizer is None or (model_rf is None and model_nb is None):
         raise HTTPException(status_code=503, detail="Modelo de Machine Learning não carregado. Tente novamente mais tarde.")
@@ -507,16 +443,17 @@ def analisar_sms(request: AnaliseRequest):
 
 
 @app.post("/feedback", response_model=FeedbackResponse)
-def receber_feedback(feedback_data: FeedbackRequest):
-    """Recebe feedback do usuário sobre a classificação."""
+def receber_feedback(feedback_data: FeedbackRequest, session: Annotated[Session, Depends(get_session)]):
+    """Recebe feedback do usuário sobre a classificação e salva no BD."""
     
-    if not GITHUB_PAT:
-        raise HTTPException(status_code=500, detail="Variável GITHUB_PAT não configurada. Não é possível salvar o feedback.")
-        
-    if update_feedback_gist(feedback_data):
-        return FeedbackResponse(
-            sucesso=True,
-            mensagem="Feedback recebido com sucesso! Obrigado por ajudar a treinar o modelo."
-        )
-    else:
-        raise HTTPException(status_code=500, detail="Erro ao salvar o feedback no Gist.")
+    try:
+        if save_feedback_to_db(feedback_data, session):
+            return FeedbackResponse(
+                sucesso=True,
+                mensagem="Feedback recebido com sucesso! Obrigado por ajudar a treinar o modelo."
+            )
+        else:
+            raise HTTPException(status_code=500, detail="Erro ao salvar o feedback no Banco de Dados.")
+    except Exception as e:
+        print(f"Erro ao salvar feedback no BD: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro inesperado ao salvar o feedback: {e}")
