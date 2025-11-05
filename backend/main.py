@@ -77,7 +77,7 @@ model_nb = None
 data_df = None # Dados de treinamento para análise
 
 def load_model_from_gist( ):
-    """Baixa o modelo empacotado (vetorizador e classificador) do Gist."""
+    """Baixa o modelo empacotado (vetorizador e ambos os classificadores) do Gist."""
     global tfidf_vectorizer, model_rf, model_nb
     
     headers = {"Authorization": f"token {GITHUB_PAT}"} if GITHUB_PAT else {}
@@ -99,11 +99,18 @@ def load_model_from_gist( ):
             # 4. Carregar o modelo do conteúdo binário
             pipeline = joblib.load(BytesIO(model_content_bytes))
             
+            # 5. Carregar AMBOS os modelos separadamente
             tfidf_vectorizer = pipeline['vectorizer']
-            model_rf = pipeline['model']
-            model_nb = pipeline['model'] # Usando o mesmo modelo para RF e NB por simplicidade no MLOps
+            model_rf = pipeline.get('model_rf', None)  # Random Forest
+            model_nb = pipeline.get('model_nb', None)  # Naive Bayes
             
-            print("✓ Modelo de ML (vetorizador e classificador) carregado do Gist com sucesso.")
+            # Exibir F1-scores se disponíveis
+            f1_nb = pipeline.get('f1_score_nb', 'N/A')
+            f1_rf = pipeline.get('f1_score_rf', 'N/A')
+            
+            print("✓ Modelos de ML carregados do Gist com sucesso.")
+            print(f"  - Naive Bayes (F1-Score: {f1_nb})")
+            print(f"  - Random Forest (F1-Score: {f1_rf})")
             return True
         else:
             print(f"✗ Erro: Arquivo {MODEL_FILENAME} não encontrado no Gist {GIST_MODEL_ID}.")

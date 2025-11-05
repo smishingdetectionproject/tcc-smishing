@@ -6,6 +6,7 @@ from io import StringIO, BytesIO
 import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import ComplementNB
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 
@@ -153,7 +154,7 @@ def load_feedback_data():
     return pd.DataFrame()
 
 def train_and_save_model():
-    """Executa o pipeline de treinamento e salva o modelo no Gist."""
+    """Executa o pipeline de treinamento e salva AMBOS os modelos no Gist."""
     print("Iniciando o pipeline de MLOps...")
     
     # 1. Carregar Dados
@@ -170,27 +171,55 @@ def train_and_save_model():
     X = df_combined['text']
     y = df_combined['label']
     
-    # 3. Treinamento
-    # Usamos todo o dataset combinado para o treinamento (sem split, pois o objetivo é ter o modelo mais atualizado)
+    # 3. Split dos dados para calcular F1-score
+    # Usamos 80% para treino e 20% para teste
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
     
-    # Inicializa o vetorizador e o modelo
-    vectorizer = TfidfVectorizer(max_features=5000) # Mantenha o mesmo max_features do seu treinamento original
-    model = ComplementNB()
+    # 4. Inicializa o vetorizador
+    vectorizer = TfidfVectorizer(max_features=5000)
     
     # Treina o vetorizador e transforma os dados
-    X_vectorized = vectorizer.fit_transform(X)
+    X_train_vectorized = vectorizer.fit_transform(X_train)
+    X_test_vectorized = vectorizer.transform(X_test)
     
-    # Treina o modelo
-    model.fit(X_vectorized, y)
+    # 5. Treinar o modelo Naive Bayes
+    print("Treinando o modelo Naive Bayes...")
+    model_nb = ComplementNB()
+    model_nb.fit(X_train_vectorized, y_train)
     
-    # 4. Empacotar e Salvar
-    # O modelo final é um pipeline que inclui o vetorizador e o classificador
+    # Calcular F1-score do Naive Bayes
+    y_pred_nb = model_nb.predict(X_test_vectorized)
+    f1_nb = f1_score(y_test, y_pred_nb)
+    print(f"F1-Score do Naive Bayes: {f1_nb:.4f}")
     
-    # Salva o pipeline no disco
-    joblib.dump({'vectorizer': vectorizer, 'model': model}, MODEL_FILENAME)
+    # 6. Treinar o modelo Random Forest
+    print("Treinando o modelo Random Forest...")
+    model_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+    model_rf.fit(X_train_vectorized, y_train)
     
-    # 5. Salvar no Gist
-    print("Salvando o novo modelo no Gist...")
+    # Calcular F1-score do Random Forest
+    y_pred_rf = model_rf.predict(X_test_vectorized)
+    f1_rf = f1_score(y_test, y_pred_rf)
+    print(f"F1-Score do Random Forest: {f1_rf:.4f}")
+    
+    # 7. Empacotar AMBOS os modelos
+    # O modelo final é um dicionário que inclui o vetorizador e ambos os classificadores
+    pipeline = {
+        'vectorizer': vectorizer,
+        'model_nb': model_nb,
+        'model_rf': model_rf,
+        'f1_score_nb': f1_nb,
+        'f1_score_rf': f1_rf
+    }
+    
+    # 8. Salvar no disco
+    joblib.dump(pipeline, MODEL_FILENAME)
+    print(f"Modelos salvos localmente: Naive Bayes (F1={f1_nb:.4f}), Random Forest (F1={f1_rf:.4f})")
+    
+    # 9. Salvar no Gist
+    print("Salvando os modelos no Gist...")
     
     # LÊ o arquivo salvo em modo binário e armazena na variável
     with open(MODEL_FILENAME, 'rb') as f:
@@ -203,6 +232,9 @@ def train_and_save_model():
     os.remove(MODEL_FILENAME)
     
     print("Pipeline de MLOps concluído com sucesso!")
+    print(f"Resumo das métricas:")
+    print(f"  - Naive Bayes F1-Score: {f1_nb:.4f}")
+    print(f"  - Random Forest F1-Score: {f1_rf:.4f}")
 
 if __name__ == "__main__":
     if not GITHUB_PAT:
