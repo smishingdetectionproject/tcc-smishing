@@ -267,7 +267,7 @@ async function enviarFeedback(pular = false) {
             mensagem: document.getElementById('mensagemInput').value.trim(),
             veredito_original: ultimaAnalise.veredito,
             feedback_util: util,
-            comentario_usuario: comentarioFeedback.value.trim() // Novo campo (pode ser vazio)
+            comentario_usuario: comentarioFeedback.value.trim() // pode ser vazio
         });
         
         // Atualizar estado

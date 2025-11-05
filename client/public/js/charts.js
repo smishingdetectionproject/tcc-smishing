@@ -151,7 +151,7 @@ function criarGraficoCurvaAUC() {
 }
 
 // ============================================================================
-// GRÁFICO DE COMPARAÇÃO DE MÉTRICAS (MANTIDO)
+// GRÁFICO DE COMPARAÇÃO DE MÉTRICAS
 // ============================================================================
 
 const distribuicaoData = {
@@ -269,7 +269,7 @@ function criarGraficoMetricas() {
 }
 
 // ============================================================================
-// GRÁFICO DE DISTRIBUIÇÃO (MANTIDO)
+// GRÁFICO DE DISTRIBUIÇÃO
 // ============================================================================
 
 function criarGraficoDistribuicao() {
@@ -320,7 +320,7 @@ function criarGraficoDistribuicao() {
 }
 
 // ============================================================================
-// NUVEM DE PALAVRAS (MANTIDO)
+// NUVEM DE PALAVRAS
 // ============================================================================
 
 function criarNuvemPalavras() {

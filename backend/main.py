@@ -16,8 +16,9 @@ import requests
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from io import BytesIO 
-import base64 # ADICIONADO: Necessário para decodificar o modelo do Gist
+from io import BytesIO, StringIO
+import base64 
+import subprocess # ADICIONADO: Para executar o train.py na rota /train_model
 
 import numpy as np
 import pandas as pd
@@ -89,7 +90,7 @@ def load_model_from_gist( ):
         
         if MODEL_FILENAME in gist_data["files"]:
             # 2. Obter o conteúdo do arquivo. O Gist armazena o binário como uma string Base64
-            # Usamos o campo 'content' que contém a string Base64, não a 'raw_url'
+            # CORREÇÃO: Usamos o campo 'content' que contém a string Base64, não a 'raw_url'
             gist_content_base64 = gist_data["files"][MODEL_FILENAME]["content"]
             
             # 3. Decodificar a string Base64 para bytes binários
@@ -403,6 +404,43 @@ def update_feedback_gist(feedback_data: FeedbackRequest):
 def read_root():
     """Rota de saúde da API."""
     return {"status": "ok", "message": "Detector de Smishing API está rodando."}
+
+
+@app.get("/health")
+def health_check():
+    """Rota de verificação de saúde da API."""
+    return {"status": "ok", "message": "API está saudável."}
+
+
+@app.get("/train_model")
+def trigger_training():
+    """
+    Rota secreta para disparar o treinamento do modelo.
+    Acessada por um serviço de Cron Job externo (ex: Cron-Job.org).
+    """
+    # A importação deve ser feita aqui para evitar problemas de dependência circular
+    # e para garantir que o script só seja executado quando a rota for chamada.
+    import subprocess
+    
+    try:
+        # Executa o script train.py como um processo separado
+        # O Render já tem o ambiente Python configurado
+        result = subprocess.run(
+            ["python3", "train.py"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        
+        return {
+            "status": "success",
+            "message": "Treinamento iniciado com sucesso.",
+            "output": result.stdout
+        }
+    except subprocess.CalledProcessError as e:
+        raise HTTPException(status_code=500, detail=f"Erro durante o treinamento: {e.stderr}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro inesperado: {e}")
 
 
 @app.post("/analisar", response_model=AnaliseResponse)
