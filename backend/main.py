@@ -121,6 +121,10 @@ def load_models_from_db():
                 print(f"✗ Erro ao carregar modelos locais: {e_local}")
                 
     except Exception as e:
+        # Ignorar erro se a tabela ModelMetadata ainda não existir (comum na primeira inicialização)
+        if "relation \"public.modelmetadata\" does not exist" in str(e) or "relation \"modelmetadata\" does not exist" in str(e):
+            print("✓ Tabela de metadados de modelo não encontrada. Ignorando o carregamento inicial.")
+            return
         print(f"✗ Erro geral ao carregar modelos do BD: {e}")
 
 def get_model_metadata(model_name: str, session: Session):
