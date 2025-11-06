@@ -196,6 +196,18 @@ def insert_dataset(session: Annotated[Session, Depends(get_session)]):
         "mensagem": f"Dataset original inserido com sucesso! {count} registros. {treinamento_status}"
     }
 
+@app.get("/create_tables", tags=["Admin"], response_model=dict)
+def create_tables_route():
+    """
+    ROTA TEMPORÁRIA: Força a criação das tabelas no BD.
+    Deve ser executada antes de /insert_dataset se a inicialização falhar.
+    """
+    try:
+        create_db_and_tables()
+        return {"sucesso": True, "mensagem": "Tabelas criadas com sucesso no Banco de Dados."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao criar tabelas: {e}")
+
 # Carregar dados de treinamento para análise (opcional, se necessário para outras análises)
 # Removido o carregamento de data_processed.csv, pois o dataset será gerenciado pelo BD
 try:
