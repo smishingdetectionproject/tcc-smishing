@@ -135,8 +135,8 @@ def get_model_metadata(model_name: str, session: Session):
 
 @app.on_event("startup")
 def on_startup():
-    """Inicializa o banco de dados e carrega os modelos na inicialização da API."""
-    create_db_and_tables()
+    """Carrega os modelos na inicialização da API."""
+    # A criação das tabelas foi movida para a rota /create_tables devido a restrições de permissão no Supabase/Render
     load_models_from_db()
 
 # ============================================================================
