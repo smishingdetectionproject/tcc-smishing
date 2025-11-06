@@ -64,7 +64,7 @@ DATA_DIR.mkdir(exist_ok=True)
 # Configurações do GitHub Gist para persistência
 GIST_FEEDBACK_ID = os.environ.get("GIST_FEEDBACK_ID", "49f7cfb15be23bb0add2a3ddc4ef343a")
 GIST_MODEL_ID = os.environ.get("GIST_MODEL_ID", "a844905fb97f000ae20a402ff438b472")
-GITHUB_PAT = os.environ.get("GITHUB_PAT")
+GITHUB_PAT = os.environ.get("GITHUB_PAT") or os.environ.get("GITHUB_PATH")
 
 FEEDBACK_FILENAME = "feedback.csv"
 MODEL_FILENAME = "model.joblib"
@@ -140,7 +140,7 @@ load_model_from_gist()
 
 # Carregar dados de treinamento para análise (opcional, se necessário para outras análises)
 try:
-    data_df = pd.read_csv(BACKEND_DIR / "data_processed.csv")
+    data_df = pd.read_csv(BACKEND_DIR / "data_processed.csv", sep=';')
     print(f"✓ Dados de treinamento carregados ({len(data_df)} registros)")
 except Exception as e:
     print(f"✗ Erro ao carregar dados de treinamento: {e}")

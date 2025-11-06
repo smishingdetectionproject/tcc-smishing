@@ -17,7 +17,7 @@ from sklearn.metrics import f1_score
 # IDs dos Gists (Serão lidos das variáveis de ambiente no Render)
 GIST_FEEDBACK_ID = os.environ.get("GIST_FEEDBACK_ID", "49f7cfb15be23bb0add2a3ddc4ef38b472")
 GIST_MODEL_ID = os.environ.get("GIST_MODEL_ID", "a844905fb97f000ae20a402ff438b472")
-GITHUB_PAT = os.environ.get("GITHUB_PAT")
+GITHUB_PAT = os.environ.get("GITHUB_PAT") or os.environ.get("GITHUB_PATH")
 
 # Nome do arquivo dentro do Gist
 FEEDBACK_FILENAME = "feedback.csv"
@@ -126,7 +126,7 @@ def load_feedback_data():
     if feedback_content:
         # Tenta ler o CSV, ignorando linhas mal formatadas
         try:
-            df_feedback = pd.read_csv(StringIO(feedback_content), on_bad_lines='skip')
+            df_feedback = pd.read_csv(StringIO(feedback_content), on_bad_lines='skip', sep=';')
             # Filtra apenas os feedbacks que não foram úteis (erros do modelo)
             df_feedback = df_feedback[df_feedback['feedback_util'] == False]
             
