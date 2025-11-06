@@ -15,7 +15,7 @@ engine = create_engine(DATABASE_URL, echo=False)
 # MODELOS DE DADOS (SQLModel)
 # ============================================================================
 
-class Dataset(SQLModel, table=True):
+class Dataset(SQLModel, table=True, schema="public"):
     """
     Tabela para armazenar o dataset original e os dados de feedback
     usados no treinamento.
@@ -26,7 +26,7 @@ class Dataset(SQLModel, table=True):
     source: str = Field(default="original") # 'original' ou 'feedback'
     timestamp: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
-class Feedback(SQLModel, table=True):
+class Feedback(SQLModel, table=True, schema="public"):
     """
     Tabela para armazenar o feedback do usuário.
     """
@@ -38,7 +38,7 @@ class Feedback(SQLModel, table=True):
     comentario_usuario: Optional[str] = None
     modelo_usado: Optional[str] = None # 'naive_bayes' ou 'random_forest'
 
-class ModelMetadata(SQLModel, table=True):
+class ModelMetadata(SQLModel, table=True, schema="public"):
     """
     Tabela para armazenar os metadados do treinamento e as métricas.
     """
@@ -56,7 +56,7 @@ class ModelMetadata(SQLModel, table=True):
     feedback_count: int
     vectorizer_max_features: int
 
-class ModelBinary(SQLModel, table=True):
+class ModelBinary(SQLModel, table=True, schema="public"):
     """
     Tabela para armazenar o binário do modelo (joblib)
     """
