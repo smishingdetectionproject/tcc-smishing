@@ -108,8 +108,8 @@ Este projeto foi desenvolvido por estudantes da UNIVESP como parte do TCC:
 - **WordCloud.js** - Nuvem de palavras
 
 ### Hospedagem
-- **Backend:** PythonAnywhere (gratuito, sem modo suspenso)
-- **Frontend:** Netlify (gratuito com CI/CD)
+- **Backend:** Render
+- **Frontend:** Vercel
 
 ### Ferramentas
 - **Git & GitHub** - Controle de versão
@@ -232,7 +232,7 @@ Este projeto é fornecido como material educacional. Todos os direitos reservado
 ## 📞 Contato
 
 Para dúvidas, sugestões ou feedback, utilize o formulário de contato disponível em:
-- **URL**: [Entre em Contato Conosco](https://detectordesmishing.netlify.app/contato)
+- **URL**: [Entre em Contato Conosco](https://detectordesmishing.vercel.app/contato.html)
 
 ---
 
